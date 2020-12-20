@@ -1,0 +1,34 @@
+{
+  "name": "proko-park-be",
+  "version": "1.0.0",
+  "description": "Backend Rest API for proko park app under proko tech llc",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ThomasLiARDJAVA/proko-park-be.git"
+  },
+  "author": "Proko Tech LLC",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ThomasLiARDJAVA/proko-park-be/issues"
+  },
+  "homepage": "https://github.com/ThomasLiARDJAVA/proko-park-be#readme",
+  "dependencies": {
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "helmet": "^4.2.0",
+    "http-errors": "^1.8.0",
+    "knex": "^0.21.14",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "eslint": "^7.16.0",
+    "eslint-config-google": "^0.14.0",
+    "nodemon": "^2.0.6"
+  }
+}
