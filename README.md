@@ -1,4 +1,4 @@
-# Raspberry Pi Rest API
+# Proko Park Backend
 
 ## Project Description
 

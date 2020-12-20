@@ -1,6 +1,5 @@
 const http = require('http');
 const app = require('./app/index');
-const provider = require('./provider/index');
 
 const debug = require('debug')('Proko_Park_BE:server');
 const server = http.createServer(app);
@@ -16,7 +15,6 @@ server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 
-provider.startScript();
 
 /**
  * Event listener for HTTP server "error" event.
@@ -60,7 +58,6 @@ function onListening() {
 /**
  * Normalize a port into a number, string, or false.
  */
-
 function normalizePort(val) {
     const port = parseInt(val, 10);
 
