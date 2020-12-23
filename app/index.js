@@ -9,18 +9,14 @@ const cors = require('cors');
 const logger = require('morgan');
 
 
-const indexRouter = require('./routes/index');
+const apiRouter = require('./routes/api');
 
 const server = express();
 
-server.use(express.urlencoded({ extended: true }));
+server.use(express.urlencoded({extended: true}));
 
 server.use(express());
 server.use(express.json());
-
-// view engine setup
-server.set('views', path.join(__dirname, 'views'));
-server.set('view engine', 'ejs');
 
 server.use(logger('dev'));
 server.use(helmet());
@@ -28,7 +24,7 @@ server.use(cors());
 server.use(cookieParser());
 server.use(express.static(path.join(__dirname, 'public')));
 
-server.use('/api', indexRouter);
+server.use('/api', apiRouter);
 
 server.use(function(req, res, next) {
     next(createError(404));
