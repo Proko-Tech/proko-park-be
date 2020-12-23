@@ -24,7 +24,8 @@
     "helmet": "^4.2.0",
     "http-errors": "^1.8.0",
     "knex": "^0.21.14",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "mysql": "^2.18.1"
   },
   "devDependencies": {
     "eslint": "^7.16.0",
