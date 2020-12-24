@@ -4,6 +4,12 @@ const router = express.Router();
 const lotsModel = require('../../../../database/models/lotsModel');
 const spotsModel = require('../../../../database/models/spotsModel');
 
+router.get('/:hash', async function(req, res){
+    const hash = req.params.hash;
+    const result = await lotsModel.getLotAndSpotsByHash(hash);
+    res.status(200).json({status:'success', data:result});
+});
+
 router.put('/spot', async function(req, res){
     const lotInfo = req.lotInfo;
     const {spotInfo} = req.body;

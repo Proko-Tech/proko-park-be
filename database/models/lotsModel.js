@@ -1,5 +1,7 @@
 const db = require('../dbConfig');
 
+const spotsModel = require('./spotsModel');
+
 /**
  * Gets parking lot from db by id and hash key
  * @param id
@@ -31,4 +33,17 @@ async function markLotAliveStatusByIdAndHash(lot_info){
     }
 };
 
-module.exports={getByIdAndHash, markLotAliveStatusByIdAndHash};
+/**
+ * get lot and spots json by hash
+ * @param hash
+ * @returns {Promise<void>}
+ */
+async function getLotAndSpotsByHash(hash){
+    const result = await db('lots')
+        .where({hash})
+        .select('*');
+    result[0].spots = await spotsModel.getSpotsByLotId(result[0].id);
+    return result[0];
+}
+
+module.exports={getByIdAndHash, markLotAliveStatusByIdAndHash, getLotAndSpotsByHash};
