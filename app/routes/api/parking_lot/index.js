@@ -12,7 +12,7 @@ router.get('/:hash', async function(req, res){
         const isGetAndUpdateSuccess = result && lot_status === 'success';
         if (isGetAndUpdateSuccess) {
             res.status(200)
-                .json({status: 'success', data: result});
+                .json({status: 'success', parking_lot_info: result});
         } else {
             res.status(404)
                 .json({status:'failed', data: 'Unable to find parking lot information'});
