@@ -17,4 +17,16 @@ async function updateSpotStatus(spot_info){
     }
 }
 
-module.exports={updateSpotStatus};
+/**
+ * getting the spots by lot id.
+ * @param lot_id
+ * @returns {Promise<void>}
+ */
+async function getSpotsByLotId(lot_id){
+    const result = await db('spots')
+        .where({lot_id})
+        .select('*');
+    return result;
+}
+
+module.exports={updateSpotStatus, getSpotsByLotId};
