@@ -1,5 +1,5 @@
 const sign_up_type = {
-    EMAIL: 'email',
+    NATIVE: 'native',
     GOOGLE: 'google',
     APPLE: 'apple',
     FACEBOOK: 'facebook'
