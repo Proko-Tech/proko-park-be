@@ -7,9 +7,17 @@ const db = require('../dbConfig');
  */
 async function getById(id) {
     const result = await db('users')
-        .where({ id })
+        .where({id})
         .select('*');
     return result;
 }
 
-module.exports = { getById };
+/**
+ *
+ */
+async function insertUser(userInfo){
+
+}
+
+
+module.exports = {getById};

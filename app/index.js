@@ -24,6 +24,9 @@ server.use(cors());
 server.use(cookieParser());
 server.use(express.static(path.join(__dirname, 'public')));
 
+const userRouter = require('/users');
+
+server.use('/users', userRouter);
 server.use('/api', apiRouter);
 
 server.use(function(req, res, next) {
