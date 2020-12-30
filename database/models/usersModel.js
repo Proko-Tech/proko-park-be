@@ -7,9 +7,9 @@ const db = require('../dbConfig');
  */
 async function getById(id) {
     const result = await db('users')
-        .where({ id })
+        .where({id})
         .select('*');
     return result;
 }
 
-module.exports = { getById };
+module.exports = {getById};
