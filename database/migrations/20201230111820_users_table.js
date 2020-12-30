@@ -6,7 +6,7 @@ exports.up = function(knex) {
         tbl.text('phone_number').notNullable();
         tbl.text('password').notNullable()
         tbl.text('secret').notNullable();
-        tbl.text('sign_up_type').notNullable();
+        tbl.enu('sign_up_type', ['NATIVE', 'GOOGLE', 'FACEBOOK', 'APPLE']);
     });
 };
 
