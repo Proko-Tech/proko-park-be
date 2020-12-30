@@ -11,6 +11,7 @@ exports.up = function(knex) {
         tbl.text('phone_number').notNullable();
         tbl.text('password').notNullable();
         tbl.enum('sign_up_type', sign_up_enum, {useNative: true, enumName:'sign_up_enum'}).notNullable().index();
+        tbl.boolean('is_verified').notNullable();
     });
 };
 
