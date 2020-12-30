@@ -1,0 +1,11 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\app",
+    "\\database",
+    "\\database\\migrations",
+    "\\database\\seeds"
+  ],
+  "SelectedNode": "\\database\\seeds\\user_values.js",
+  "PreviewInSolutionExplorer": false
+}

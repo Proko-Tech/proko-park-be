@@ -4,7 +4,7 @@ exports.up = function(knex) {
         tbl.increments('id').unique().notNullable();
         tbl.text('email').notNullable();
         tbl.text('phone_number').notNullable();
-        tbl.text('hash').notNullable();
+        tbl.text('password').notNullable()
         tbl.text('secret').notNullable();
         tbl.text('sign_up_type').notNullable();
     });
