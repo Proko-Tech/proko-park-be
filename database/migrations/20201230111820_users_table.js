@@ -12,7 +12,6 @@ exports.up = function(knex) {
         tbl.text('email').notNullable();
         tbl.text('phone_number').notNullable();
         tbl.text('password').notNullable();
-        tbl.enum('sign_up_type', ['NATIVE', 'GOOGLE', 'FACEBOOK', 'APPLE']);
         tbl.enum('sign_up_type', sign_up_type_enum, {useNative: true, enumName:'sign_up_type_enum'}).notNullable().index();
     });
 };
