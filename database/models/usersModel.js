@@ -7,12 +7,11 @@ const db = require('../dbConfig');
  */
 async function getById(id) {
     const result = await db('users')
-        .where({ id })
+        .where({id})
         .select('*');
     return result;
 }
 
-/**
  * Gets user from db by email
  * @param email
  * @returns {Promise<void>}
