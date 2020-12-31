@@ -12,12 +12,15 @@ async function getById(id) {
     return result;
 }
 
-/**
- *
+ * Gets user from db by email
+ * @param email
+ * @returns {Promise<void>}
  */
-async function insertUser(userInfo){
-
+async function getByEmail(email){
+    const result = await db('users')
+        .where({email})
+        .select('*');
+    return result;
 }
 
-
-module.exports = {getById};
+module.exports = {getById, getByEmail};
