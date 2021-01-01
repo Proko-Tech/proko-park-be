@@ -27,7 +27,7 @@ router.post('/', async function(req, res){
         res.status(202)
             .json({status:'success', data:token});
     } else {
-        res.status(404).json({statu:'failed', message: 'email/password incorrect'});
+        res.status(404).json({status:'failed', message: 'email/password incorrect'});
     }
 });
 
