@@ -22,8 +22,6 @@ router.post('/', async function(req, res){
             ...pick(result[0], ['id', 'email']),
         };
         const token = await tokenUtil.generateToken(userInfo);
-        res.clearCookie('userToken');
-        res.cookie("userToken", token);
         res.status(202)
             .json({status:'success', data:token});
     } else {
