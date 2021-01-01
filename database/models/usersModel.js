@@ -13,7 +13,6 @@ async function getById(id) {
     return result;
 }
 
-/**
  * Gets user from db by email
  * @param email
  * @returns {Promise<void>}
