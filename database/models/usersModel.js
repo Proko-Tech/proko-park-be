@@ -18,9 +18,10 @@ async function getById(id) {
  * @param email
  * @returns {Promise<void>}
  */
-async function getByEmail(email){
+async function getByEmailAndSignupType(email, sign_up_type){
     const result = await db('users')
         .where({email})
+        .andWhere({sign_up_type})
         .select('*');
     return result;
 }
@@ -41,4 +42,4 @@ async function getAllById(id){
     return result;
 }
 
-module.exports = {getById, getByEmail, getAllById};
+module.exports = {getById, getByEmailAndSignupType, getAllById};

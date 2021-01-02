@@ -9,7 +9,7 @@ const pick = require('../../../../utils/pick');
 
 router.post('/', async function(req, res){
     const {userData} = req.body;
-    const result = await usersModel.getByEmail(userData.email);
+    const result = await usersModel.getByEmailAndSignupType(userData.email, userData.sign_up_type);
 
     const isUserExist = !(result.length === 0);
     const isUserTypeService = isUserExist? result[0].sign_up_type !=='NATIVE' : false;
