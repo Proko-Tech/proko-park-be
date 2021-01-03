@@ -4,7 +4,7 @@ exports.up = function(knex) {
         tbl.increments('id').unique().notNullable();
         tbl.integer('user_id').notNullable();
         tbl.integer('vehicle_id').notNullable();
-        tbl.boolean('is_primary_owner').notNullable().defaultTo(false);
+        tbl.boolean('is_primary_owner').notNullable();
     });
 };
 

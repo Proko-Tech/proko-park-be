@@ -1,7 +1,7 @@
 const sign_up_type_enum = [
     'NATIVE',
     'GOOGLE',
-    'FACEBOOK', 
+    'FACEBOOK',
     'APPLE',
 ];
 exports.up = function(knex) {
@@ -10,7 +10,7 @@ exports.up = function(knex) {
         tbl.text('first_name').notNullable();
         tbl.text('last_name').notNullable();
         tbl.text('email').notNullable();
-        tbl.text('phone_number').notNullable();
+        tbl.text('phone_number');
         tbl.text('password').notNullable();
         tbl.enum('sign_up_type', sign_up_type_enum, {useNative: true, enumName:'sign_up_type_enum'}).notNullable().index();
     });

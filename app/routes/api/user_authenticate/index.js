@@ -9,15 +9,25 @@ const pick = require('../../../../utils/pick');
 
 router.post('/', async function(req, res){
     const {userData} = req.body;
-    const result = await usersModel.getByEmailAndSignupType(userData.email, userData.sign_up_type);
+    const result = await usersModel.getByEmail(userData.email);
 
     const isUserExist = !(result.length === 0);
-    const isUserTypeService = isUserExist? result[0].sign_up_type !=='NATIVE' : false;
-    const isCorrectPassword = isUserExist ?
+    const isSignUpNative = isUserExist? result[0].sign_up_type === "NATIVE" : false;
+    const isCorrectPassword = isUserExist && result[0].password && isSignUpNative ?
         bcrypt.compareSync(userData.password, result[0].password) : false;
-    const isUserMatched = isUserExist && (isUserTypeService||isCorrectPassword);
+    const isUserMatchedNative = isUserExist && (isCorrectPassword);
 
-    if (isUserMatched){
+    const isSignUpTypeSocial = result[0].sign_up_type === 'GOOGLE' ||
+        result[0].sign_up_type === 'FACEBOOK' ||
+        result[0].sign_up_type === 'APPLE';
+    const isUserMatchedSocially = isUserExist && isSignUpTypeSocial? result[0].sign_up_type === userData.sign_up_type : false;
+
+    const isLogInTypeGoogle = userData.sign_up_type === 'GOOGLE';
+    const isLoginGoogleWithNativeSignUp = isUserExist && isSignUpNative && isLogInTypeGoogle;
+    // add in password Check
+    const isValidAuth = isUserMatchedNative || isUserMatchedSocially || isLoginGoogleWithNativeSignUp;
+
+    if (isValidAuth){
         const userInfo = {
             ...pick(result[0], ['id', 'email']),
         };
@@ -25,7 +35,11 @@ router.post('/', async function(req, res){
         res.status(202)
             .json({status:'success', data:token});
     } else {
-        res.status(404).json({status:'failed', message: 'email/password incorrect'});
+        if (isUserExist && isSignUpTypeSocial){
+            res.status(401).json({status: 'failed', message: 'Account was signed up with a different method'});
+        } else {
+            res.status(404).json({status: 'failed', message: 'Email/password you entered is incorrect'});
+        }
     }
 });
 
