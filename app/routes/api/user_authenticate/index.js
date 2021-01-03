@@ -20,9 +20,9 @@ router.post('/', async function(req, res){
     const isSignUpTypeSocial = result[0].sign_up_type === 'GOOGLE' ||
         result[0].sign_up_type === 'FACEBOOK' ||
         result[0].sign_up_type === 'APPLE';
-    const isUserMatchedSocially = isUserExist && isSignUpTypeSocial? result[0].sign_up_type === userData.sign_up_type : false;
+    const isUserMatchedSocially = isUserExist && isSignUpTypeSocial? result[0].sign_up_type === userData.login_in_type : false;
 
-    const isLogInTypeGoogle = userData.sign_up_type === 'GOOGLE';
+    const isLogInTypeGoogle = userData.login_in_type === 'GOOGLE';
     const isLoginGoogleWithNativeSignUp = isUserExist && isSignUpNative && isLogInTypeGoogle;
     // add in password Check
     const isValidAuth = isUserMatchedNative || isUserMatchedSocially || isLoginGoogleWithNativeSignUp;
