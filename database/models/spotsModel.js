@@ -29,4 +29,17 @@ async function getSpotsByLotId(lot_id){
     return result;
 }
 
-module.exports={updateSpotStatus, getSpotsByLotId};
+/**
+ * Getting unoccupied spots by Lot id
+ * @param lot_id
+ * @returns {Promise<void>}
+ */
+async function getUnoccupiedByLotId(lot_id){
+    const result = await db('spots')
+        .where({lot_id})
+        .andWhere({spot_status: 'UNOCCUPIED'})
+        .select('*');
+    return result;
+}
+
+module.exports={updateSpotStatus, getSpotsByLotId, getUnoccupiedByLotId};
