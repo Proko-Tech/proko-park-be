@@ -3,6 +3,10 @@ exports.up = function(knex) {
     return knex.schema.createTable('lots', (tbl)=>{
         tbl.increments('id').unique().notNullable();
         tbl.text('name').notNullable();
+        tbl.text('address').notNullable();
+        tbl.text('state').notNullable();
+        tbl.text('city').notNullable();
+        tbl.text('zip').notNullable();
         tbl.decimal('lat', 10, 8).notNullable();
         tbl.decimal('long', 11, 8).notNullable();
         tbl.text('hash').notNullable();
