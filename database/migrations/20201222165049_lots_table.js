@@ -11,6 +11,7 @@ exports.up = function(knex) {
         tbl.decimal('long', 11, 8).notNullable();
         tbl.text('hash').notNullable();
         tbl.boolean('alive_status').notNullable();
+        tbl.decimal('price_per_hour').notNullable();
         tbl.timestamps(true,true);// creates created_at column and updated_at column
     });
 };

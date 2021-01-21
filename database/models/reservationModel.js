@@ -10,7 +10,7 @@ async function getDistinctLotsByUserId(user_id){
     const rows = await db('reservations')
         .join('lots', 'reservations.lot_id', 'lots.id')
         .where({user_id})
-        .distinct(['lot_id', 'name', 'lat', 'long', 'address', 'state', 'city', 'zip', 'alive_status']);
+        .distinct(['lot_id', 'name', 'lat', 'long', 'address', 'state', 'city', 'zip', 'alive_status', 'price_per_hour']);
     const result = await Promise.all(rows.map(async (row)=>{
         const spots = await spotModel.getUnoccupiedByLotId(row.lot_id);
         const lot_info = {
