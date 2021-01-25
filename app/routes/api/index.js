@@ -9,6 +9,7 @@ const parkingLotAuthenticateRouter = require('./parking_lot_authenticate');
 
 const userRoute = require('./users');
 const userAuthenticateRoute = require('./user_authenticate');
+const parkingLotsRouter = require('./parking_lots');
 
 // routes
 router.use('/parking_lot', verifyParkingLotToken, parkingLotRouter);
@@ -17,5 +18,6 @@ router.use('/parking_lot_authenticate', parkingLotAuthenticateRouter);
 // user routes:
 router.use('/user', verifyUserToken, userRoute);
 router.use('/user_authenticate', userAuthenticateRoute);
+router.use('/parking_lots', verifyUserToken, parkingLotsRouter);
 
 module.exports = router;

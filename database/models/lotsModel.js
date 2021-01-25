@@ -46,4 +46,25 @@ async function getLotAndSpotsByHash(hash){
     return result[0];
 }
 
-module.exports={getByIdAndHash, markLotAliveStatusByIdAndHash, getLotAndSpotsByHash};
+/**
+ * get parking lot and its open spots with parameter
+ * @param id
+ * @returns {Promise<{available_spots: *}>}
+ */
+async function getAndUnoccupiedSpotNumsById(id){
+    const lot = await db('lots')
+        .where({id})
+        .select('*');
+    if (lot.length>0) {
+        const spots = await spotsModel.getUnoccupiedByLotId(lot[0].id);
+        const result = {
+            ...lot[0],
+            available_spots: spots.length,
+        };
+        return result;
+    } else {
+        return null;
+    }
+}
+
+module.exports={getByIdAndHash, markLotAliveStatusByIdAndHash, getLotAndSpotsByHash, getAndUnoccupiedSpotNumsById};
