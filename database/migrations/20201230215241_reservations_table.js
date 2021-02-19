@@ -4,7 +4,7 @@ exports.up = function(knex) {
         tbl.increments('id').unique().notNullable();
         tbl.integer('user_id').notNullable();
         tbl.integer('vehicle_id').notNullable();
-        tbl.integer('spot_id').notNullable();
+        tbl.text('spot_hash').notNullable();
         tbl.integer('lot_id').notNullable();
         tbl.float('elapsed_time').notNullable();
         tbl.float('total_price').notNullable();

@@ -42,4 +42,28 @@ async function getUnoccupiedByLotId(lot_id){
     return result;
 }
 
-module.exports={updateSpotStatus, getSpotsByLotId, getUnoccupiedByLotId};
+/**
+ * get spots by id
+ * @param id
+ * @returns {Promise<void>}
+ */
+async function getById(id){
+    const result = await db('spots')
+        .where({id})
+        .select('*');
+    return result;
+}
+
+/**
+ * get spots by hash
+ * @param spot_status
+ * @returns {Promise<void>}
+ */
+async function getBySecret(secret){
+    const result = await db('spots')
+        .where({secret})
+        .select('*');
+    return result;
+}
+
+module.exports={updateSpotStatus, getSpotsByLotId, getUnoccupiedByLotId, getById, getBySecret};

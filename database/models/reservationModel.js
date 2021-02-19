@@ -22,4 +22,18 @@ async function getDistinctLotsByUserId(user_id){
     return result;
 }
 
-module.exports={getDistinctLotsByUserId};
+/**
+ * get by user id and lot id
+ * @param user_id
+ * @param lot_id
+ * @returns {Promise<void>}
+ */
+async function getByUserIdAndLotId(user_id, lot_id){
+    const rows = await db('reservations')
+        .where({user_id})
+        .andWhere({lot_id})
+        .select("*");
+    return rows;
+}
+
+module.exports={getDistinctLotsByUserId, getByUserIdAndLotId};
