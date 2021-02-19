@@ -9,6 +9,9 @@ exports.up = function(knex) {
         tbl.float('elapsed_time').notNullable();
         tbl.float('total_price').notNullable();
         tbl.boolean('is_paid').defaultTo(false);
+        tbl.datetime('reserved_at');
+        tbl.datetime('arrived_at');
+        tbl.datetime('exited_at');
         tbl.timestamps(true,true);// creates created_at column and updated_at column
 
     });
