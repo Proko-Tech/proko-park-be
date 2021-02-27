@@ -36,4 +36,66 @@ async function getByUserIdAndLotId(user_id, lot_id){
     return rows;
 }
 
-module.exports={getDistinctLotsByUserId, getByUserIdAndLotId};
+/**
+ * get reserved by spot hash and lot id
+ * @param spot_hash
+ * @param lot_id
+ * @returns {Promise<*>}
+ */
+async function getReservedBySpotHashAndLotId(spot_hash, lot_id){
+    const rows = await db('reservations')
+        .where({spot_hash})
+        .andWhere({lot_id})
+        .andWhere({status: 'RESERVED'})
+        .select('*');
+    return rows;
+}
+
+/**
+ * get arrived by spot hash and lot id
+ * @param spot_hash
+ * @param lot_id
+ * @returns {Promise<void>}
+ */
+async function getArrivedBySpotHashAndLotId(spot_hash, lot_id){
+    const rows = await db('reservations')
+        .where({spot_hash})
+        .andWhere({lot_id})
+        .andWhere({status: 'ARRIVED'})
+        .select('*');
+    return rows;
+}
+
+/**
+ * get parked by spot hash and lot id
+ * @param spot_hash
+ * @param lot_id
+ * @returns {Promise<void>}
+ */
+async function getParkedBySpotHashAndLotId(spot_hash, lot_id){
+    const rows = await db('reservations')
+        .where({spot_hash})
+        .andWhere({lot_id})
+        .andWhere({status: 'PARKED'})
+        .select('*');
+    return rows;
+}
+
+/**
+ * update the reservation info by id
+ * @param id
+ * @param reservation_info
+ * @returns {Promise<{reservation_status: string}>}
+ */
+async function updateById(id, reservation_info){
+    try {
+        await db('reservations')
+            .where({id})
+            .update(reservation_info);
+        return {reservation_status:'success'};
+    } catch (err) {
+        return {reservation_status:'failed'};
+    }
+}
+
+module.exports={getDistinctLotsByUserId, getByUserIdAndLotId, getReservedBySpotHashAndLotId,getParkedBySpotHashAndLotId, getArrivedBySpotHashAndLotId, updateById};
