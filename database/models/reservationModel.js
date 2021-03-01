@@ -54,6 +54,32 @@ async function getReservedByUserId(user_id){
 }
 
 /**
+ * get arrived tasks by user Id
+ * @param user_id
+ * @returns {Promise<void>}
+ */
+async function getArrivedByUserId(user_id){
+    const rows = await db('reservations')
+        .where({user_id})
+        .andWhere({status: 'ARRIVED'})
+        .select('*');
+    return rows;
+}
+
+/**
+ * get parked tasks by user Id
+ * @param user_id
+ * @returns {Promise<void>}
+ */
+async function getParkedByUserId(user_id){
+    const rows = await db('reservations')
+        .where({user_id})
+        .andWhere({status: 'PARKED'})
+        .select('*');
+    return rows;
+}
+
+/**
  * get reserved by spot hash and lot id
  * @param spot_hash
  * @param lot_id
@@ -205,4 +231,4 @@ async function insertAndHandleReserve(lot_id, user_id, vehicle_id){
     return result;
 }
 
-module.exports={getDistinctLotsByUserId, getByUserIdAndLotId, getReservedBySpotHashAndLotId, getReservedByUserId, getArrivedByUserIdAndLotId, getParkedByUserIdAndLotId, getParkedBySpotHashAndLotId, getReservedByUserIdAndLotId, getArrivedBySpotHashAndLotId, updateById, insertAndHandleReserve};
+module.exports={getDistinctLotsByUserId, getByUserIdAndLotId, getReservedBySpotHashAndLotId, getReservedByUserId, getArrivedByUserId, getParkedByUserId, getArrivedByUserIdAndLotId, getParkedByUserIdAndLotId, getParkedBySpotHashAndLotId, getReservedByUserIdAndLotId, getArrivedBySpotHashAndLotId, updateById, insertAndHandleReserve};

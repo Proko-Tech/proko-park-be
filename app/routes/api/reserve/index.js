@@ -34,6 +34,7 @@ router.post('/', async function(req, res){
             const reservation_info = {
                 vehicle: vehicles[0],
                 parking_lot: lots[0],
+                status: 'RESERVED',
             };
             res.status(200)
                 .json({status: 'success', reservation_info});

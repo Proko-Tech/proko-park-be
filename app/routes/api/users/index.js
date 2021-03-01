@@ -29,13 +29,42 @@ router.get('/:id', async function(req, res){
             const user = await userModel.getAllById(id);
             user.user.vehicles = await vehicleModel.getByUserId(id);
             const currentReservation = await reservationModel.getReservedByUserId(id);
-            const vehicles = await vehicleModel.getById(currentReservation[0].vehicle_id);
-            const lots = await lotModel.getById(currentReservation[0].lot_id);
-            const reservation_info = {
-                vehicle: vehicles[0],
-                parking_lot: lots[0],
-            };
-            res.status(200).json({data:user, reservation_info, msg: 'User info was found'});
+            const currentArrivedTasks = await reservationModel.getArrivedByUserId(id);
+            const currentParkedTasks = await reservationModel.getParkedByUserId(id);
+            const isUserCurrentlyHasTask = currentReservation.length>0 || currentArrivedTasks.length>0 || currentParkedTasks.length>0;
+
+            // TODO: add check current parked, and arrived
+            let reservation_info = {};
+            if (isUserCurrentlyHasTask) {
+                if (currentReservation.length > 0) {
+                    const vehicles = await vehicleModel.getById(currentReservation[0].vehicle_id);
+                    const lots = await lotModel.getById(currentReservation[0].lot_id);
+                    reservation_info = {
+                        vehicle: vehicles[0],
+                        parking_lot: lots[0],
+                        status: 'RESERVED',
+                    };
+                }
+                if (currentArrivedTasks.length > 0) {
+                    const vehicles = await vehicleModel.getById(currentArrivedTasks[0].vehicle_id);
+                    const lots = await lotModel.getById(currentArrivedTasks[0].lot_id);
+                    reservation_info = {
+                        vehicle: vehicles[0],
+                        parking_lot: lots[0],
+                        status: 'ARRIVED',
+                    };
+                }
+                if (currentParkedTasks.length > 0) {
+                    const vehicles = await vehicleModel.getById(currentParkedTasks[0].vehicle_id);
+                    const lots = await lotModel.getById(currentParkedTasks[0].lot_id);
+                    reservation_info = {
+                        vehicle: vehicles[0],
+                        parking_lot: lots[0],
+                        status: 'PARKED',
+                    };
+                }
+            }
+            res.status(200).json({data: user, reservation_info, msg: 'User info was found'});
         } else {
             res.status(401)
                 .json({status: 'failed', message: 'Unauthorized action'});
