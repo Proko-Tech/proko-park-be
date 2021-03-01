@@ -3,6 +3,7 @@ const router = express.Router();
 
 const userModel = require('../../../../database/models/usersModel');
 const vehicleModel = require('../../../../database/models/vehiclesModel');
+const lotModel = require('../../../../database/models/lotsModel');
 const reservationModel = require('../../../../database/models/reservationModel');
 
 router.get('/parking_lot/:id', async function(req, res){
@@ -27,7 +28,14 @@ router.get('/:id', async function(req, res){
         if (id === JSON.stringify(req.userInfo.id)) {
             const user = await userModel.getAllById(id);
             user.user.vehicles = await vehicleModel.getByUserId(id);
-            res.status(200).json({data:user, msg: 'User info was found'});
+            const currentReservation = await reservationModel.getReservedByUserId(id);
+            const vehicles = await vehicleModel.getById(currentReservation[0].vehicle_id);
+            const lots = await lotModel.getById(currentReservation[0].lot_id);
+            const reservation_info = {
+                vehicle: vehicles[0],
+                parking_lot: lots[0],
+            };
+            res.status(200).json({data:user, reservation_info, msg: 'User info was found'});
         } else {
             res.status(401)
                 .json({status: 'failed', message: 'Unauthorized action'});

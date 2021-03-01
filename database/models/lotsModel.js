@@ -67,4 +67,16 @@ async function getAndUnoccupiedSpotNumsById(id){
     }
 }
 
-module.exports={getByIdAndHash, markLotAliveStatusByIdAndHash, getLotAndSpotsByHash, getAndUnoccupiedSpotNumsById};
+/**
+ * get lot info by id
+ * @param id
+ * @returns {Promise<void>}
+ */
+async function getById(id){
+    const result = await db('lots')
+        .where({id})
+        .select('*');
+    return result;
+}
+
+module.exports={getByIdAndHash, markLotAliveStatusByIdAndHash, getLotAndSpotsByHash, getAndUnoccupiedSpotNumsById, getById};
