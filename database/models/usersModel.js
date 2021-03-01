@@ -54,4 +54,18 @@ async function getAllById(id){
     return result;
 }
 
-module.exports = {getById, getByEmailAndSignupType, getAllById, getByEmail};
+/**
+ * @param user
+ * @returns {Promise<{user_status: string}>}
+ */
+async function insertUser(user){
+    try {
+        await db('spots')
+            .insert(user);
+        return {user_status:'success'};
+    } catch (err) {
+        return {user_status:'failed'};
+    }
+}
+
+module.exports = {getById, getByEmailAndSignupType, getAllById, getByEmail, insertUser};

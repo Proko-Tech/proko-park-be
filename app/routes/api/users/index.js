@@ -38,4 +38,21 @@ router.get('/:id', async function(req, res){
     }
 });
 
+router.post('/checkEmail', async function(req, res){
+    const email = req.body.email;
+    try {
+        const users = await usersModel.getByEmail(email);
+        if (users.length!=0) {
+            res.status(401)
+                .json({status: 'failed', msg: 'Another account using this email was found'});
+        } else {
+            res.status(200)
+                .json({status: 'success', message: 'success'});
+        }
+    } catch (err) {
+        res.status(500)
+            .json({err, message: 'Unable to get user from database'})
+    }
+});
+
 module.exports = router;
