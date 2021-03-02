@@ -2,6 +2,21 @@ const db = require('../dbConfig');
 const pick = require('../../utils/pick');
 
 /**
+ * Insert user
+ * @param user
+ * @returns {Promise<{user_status: string}>}
+ */
+async function insert(user){
+    try {
+        await db('users')
+            .insert(user);
+        return {user_status:'success'};
+    } catch (err) {
+        return {user_status:'failed'};
+    }
+}
+
+/**
  * Gets user from db by id
  * @param id
  * @returns {Promise<void>}
@@ -54,18 +69,5 @@ async function getAllById(id){
     return result;
 }
 
-/**
- * @param user
- * @returns {Promise<{user_status: string}>}
- */
-async function insertUser(user){
-    try {
-        await db('spots')
-            .insert(user);
-        return {user_status:'success'};
-    } catch (err) {
-        return {user_status:'failed'};
-    }
-}
 
-module.exports = {getById, getByEmailAndSignupType, getAllById, getByEmail, insertUser};
+module.exports = {getById, getByEmailAndSignupType, getAllById, getByEmail, insert};

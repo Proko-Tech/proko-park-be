@@ -13,8 +13,8 @@ exports.up = function(knex) {
         tbl.integer('vehicle_id').notNullable();
         tbl.text('spot_hash').notNullable();
         tbl.integer('lot_id').notNullable();
-        tbl.float('elapsed_time').notNullable();
-        tbl.float('total_price').notNullable();
+        tbl.float('elapsed_time').defaultTo(0).notNullable();
+        tbl.float('total_price').defaultTo(0).notNullable();
         tbl.boolean('is_paid').defaultTo(false);
         tbl.datetime('reserved_at');
         tbl.datetime('arrived_at');

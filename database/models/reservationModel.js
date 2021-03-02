@@ -1,5 +1,7 @@
 const db = require('../dbConfig');
 const spotModel = require('./spotsModel');
+const pick = require('../../utils/pick');
+const removeDuplicates = require('../../utils/removeDuplicates');
 
 /**
  * get distinct lot information from user parking histories
@@ -19,7 +21,8 @@ async function getDistinctLotsByUserId(user_id){
         };
         return lot_info;
     }));
-    return result;
+    const reducedArr = removeDuplicates(result, ['lot_id']);
+    return reducedArr;
 }
 
 /**
@@ -36,6 +39,46 @@ async function getByUserIdAndLotId(user_id, lot_id){
     return rows;
 }
 
+
+/**
+ * get reserved tasks by user Id
+ * @param user_id
+ * @returns {Promise<void>}
+ */
+async function getReservedByUserId(user_id){
+    const rows = await db('reservations')
+        .where({user_id})
+        .andWhere({status: 'RESERVED'})
+        .select('*');
+    return rows;
+}
+
+/**
+ * get arrived tasks by user Id
+ * @param user_id
+ * @returns {Promise<void>}
+ */
+async function getArrivedByUserId(user_id){
+    const rows = await db('reservations')
+        .where({user_id})
+        .andWhere({status: 'ARRIVED'})
+        .select('*');
+    return rows;
+}
+
+/**
+ * get parked tasks by user Id
+ * @param user_id
+ * @returns {Promise<void>}
+ */
+async function getParkedByUserId(user_id){
+    const rows = await db('reservations')
+        .where({user_id})
+        .andWhere({status: 'PARKED'})
+        .select('*');
+    return rows;
+}
+
 /**
  * get reserved by spot hash and lot id
  * @param spot_hash
@@ -47,6 +90,51 @@ async function getReservedBySpotHashAndLotId(spot_hash, lot_id){
         .where({spot_hash})
         .andWhere({lot_id})
         .andWhere({status: 'RESERVED'})
+        .select('*');
+    return rows;
+}
+
+/**
+ * get reserved by user id and lot id
+ * @param user_id
+ * @param lot_id
+ * @returns {Promise<void>}
+ */
+async function getReservedByUserIdAndLotId(user_id, lot_id){
+    const rows = await db('reservations')
+        .where({user_id})
+        .andWhere({lot_id})
+        .andWhere({status: 'RESERVED'})
+        .select('*');
+    return rows;
+}
+
+/**
+ * get arrived by user id and lot id
+ * @param user_id
+ * @param lot_id
+ * @returns {Promise<void>}
+ */
+async function getArrivedByUserIdAndLotId(user_id, lot_id){
+    const rows = await db('reservations')
+        .where({user_id})
+        .andWhere({lot_id})
+        .andWhere({status: 'ARRIVED'})
+        .select('*');
+    return rows;
+}
+
+/**
+ * get parked by user id and lot id
+ * @param user_id
+ * @param lot_id
+ * @returns {Promise<void>}
+ */
+async function getParkedByUserIdAndLotId(user_id, lot_id){
+    const rows = await db('reservations')
+        .where({user_id})
+        .andWhere({lot_id})
+        .andWhere({status: 'PARKED'})
         .select('*');
     return rows;
 }
@@ -98,4 +186,49 @@ async function updateById(id, reservation_info){
     }
 }
 
-module.exports={getDistinctLotsByUserId, getByUserIdAndLotId, getReservedBySpotHashAndLotId,getParkedBySpotHashAndLotId, getArrivedBySpotHashAndLotId, updateById};
+/**
+ * check empty spots in the requested parking lot, randomly choose index from the
+ * empty spots, mark reserve then insert new reservation record.
+ *
+ * @param lot_id
+ * @param user_id
+ * @param vehicle_id
+ * @returns {Promise<{reservation_status: string}>}
+ */
+async function insertAndHandleReserve(lot_id, user_id, vehicle_id){
+    const result = {reservation_status: 'failed'};
+    await db.transaction(async (transaction) => {
+        try {
+            const emptySpots = await spotModel.getUnoccupiedByLotId(lot_id);
+            if (emptySpots.length === 0) await transaction.rollback();
+            const props = ['secret', 'lot_id'];
+            const spotInfo = {
+                ...pick(emptySpots[Math.floor(Math.random() * Math.floor(emptySpots.length))], props),
+                status: 'RESERVED',
+            };
+            await db('spots')
+                .where({lot_id})
+                .andWhere({secret: spotInfo.secret})
+                .update({spot_status: 'RESERVED'})
+                .transacting(transaction);
+            const reservationInfo = {
+                user_id, lot_id, vehicle_id,
+                spot_hash: spotInfo.secret,
+                reserved_at: new Date(),
+                status: 'RESERVED',
+            };
+            await db('reservations')
+                .transacting(transaction)
+                .insert(reservationInfo);
+            result.reservation_status = 'success';
+            await transaction.commit();
+        } catch (err) {
+            console.log(err);
+            result.reservation_status = 'failed';
+            await transaction.rollback();
+        }
+    });
+    return result;
+}
+
+module.exports={getDistinctLotsByUserId, getByUserIdAndLotId, getReservedBySpotHashAndLotId, getReservedByUserId, getArrivedByUserId, getParkedByUserId, getArrivedByUserIdAndLotId, getParkedByUserIdAndLotId, getParkedBySpotHashAndLotId, getReservedByUserIdAndLotId, getArrivedBySpotHashAndLotId, updateById, insertAndHandleReserve};

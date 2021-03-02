@@ -21,4 +21,16 @@ async function getByUserId(user_id){
     return results;
 }
 
-module.exports={getByUserId}
+/**
+ * get vehicles by id
+ * @param id
+ * @returns {Promise<void>}
+ */
+async function getById(id){
+    const result = await db('vehicles')
+        .where({id})
+        .select('*');
+    return result;
+}
+
+module.exports={getByUserId, getById};
