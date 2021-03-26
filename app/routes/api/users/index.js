@@ -18,7 +18,23 @@ router.get('/parking_lot/:id', async function(req, res){
         }
     } catch (err) {
         res.status(500)
-            .json({err, message: 'Unable to get parking lot histories from database'})
+            .json({err, message: 'Unable to get parking lot histories from database'});
+    }
+});
+
+router.put('/', async function(req, res){
+    const {id} = req.userInfo;
+    try {
+        const status = await userModel.updateById(id, req.body);
+        if (status.uodate_status) {
+            res.status(200).json({status: 'success'});
+        } else {
+            res.status(401)
+                .json({status: 'failed', message: 'Unauthorized action'});
+        }
+    } catch (err){
+        res.status(500)
+            .json({err, message: 'Unable to change user Info due to server error'});
     }
 });
 

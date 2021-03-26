@@ -69,4 +69,20 @@ async function getAllById(id){
     return result;
 }
 
-module.exports = {getById, getByEmailAndSignupType, getAllById, getByEmail, insert};
+/**
+ * function that updates user by id
+ * @param id
+ * @param modified_user
+ * @returns {Promise<{user_status: string}>}
+ */
+async function updateById(id, modified_user){
+    try {
+        await db('users')
+            .update(modified_user);
+        return {uodate_status:'success'};
+    } catch (err) {
+        return {uodate_status:'failed'};
+    }
+}
+
+module.exports = {getById, getByEmailAndSignupType, updateById, getAllById, getByEmail, insert};
