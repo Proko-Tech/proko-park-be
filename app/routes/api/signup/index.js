@@ -1,5 +1,5 @@
 const express = require('express');
-const limiter = require('../../middlewares/rate_limiters/config');
+const limiter = require('../../../middlewares/rate_limiters/config');
 const router = express.Router();
 const bcrypt = require('bcrypt-nodejs');
 
