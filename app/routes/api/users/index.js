@@ -74,6 +74,30 @@ router.put('/attributes/password', async function(req, res){
     }
 });
 
+router.put('/attributes/verify_email', async function(req, res){
+    const {id} = req.userInfo;
+    try {
+        const result = await userModel.getById(id);
+        const isUserExist = result.length!==0;
+        if (!isUserExist) return res.status(403).json({message: 'User does not exist'});
+        const isMatched = result[0].verify_code === req.body.verify_code;
+        if (!isMatched) {
+            return res.status(404).json({message: 'Code not matched'});
+        }
+        const update_json = {
+            is_verified: true,
+        };
+        const status = await userModel.updateById(id, update_json);
+        if (status.uodate_status==='success')
+            return res.status(200).json({message: 'Password matched'});
+        else
+            return res.status(404).json({message: 'Update failed'});
+    } catch (err){
+        res.status(500)
+            .json({err, message: 'Unable to check password due to server error'});
+    }
+});
+
 router.get('/:id', async function(req, res){
     const {id} = req.params;
     try {

@@ -50,4 +50,45 @@ router.post('/', async function(req, res){
     }
 });
 
+router.post('/social', async function(req, res){
+    try {
+        const {userData} = req.body;
+        const result = await usersModel.getByEmail(userData.email);
+        const isUserExist = !(result.length === 0);
+        if (!isUserExist){
+            const user = {
+                email: userData.email,
+                first_name: userData.first_name,
+                last_name: userData.last_name,
+                password: bcrypt.hashSync(userData.password, null, null),
+                verify_code: 'SOCIAL_SIGNUP',
+                sign_up_type: userData.login_in_type,
+                is_verified: true,
+            };
+            const {user_status} = await usersModel.insert(user);
+            const inserted_user = await usersModel.getByEmail(userData.email);
+            const userInfo = {
+                ...pick(inserted_user[0], ['id', 'email']),
+            };
+            const token = await tokenUtil.generateToken(userInfo);
+            return res.status(202)
+                .json({status: 'success', data: token});
+        } else {
+            // const isPasswordMatch = bcrypt.compareSync(userData.password, result[0].password);
+            // if (!isPasswordMatch) return res.status(404).json({status: 'failed', message: 'Unauthorized action'});
+            // else {
+            const userInfo = {
+                ...pick(result[0], ['id', 'email']),
+            };
+            const token = await tokenUtil.generateToken(userInfo);
+            return res.status(202)
+                .json({status: 'success', data: token});
+        }
+        // }
+    } catch (err){
+        return res.status(500)
+            .json({err, message: 'Unable to get user from database'})
+    }
+});
+
 module.exports = router;
