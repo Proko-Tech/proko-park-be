@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const limiter = require('../../middlewares/rate_limiters/config');
 const verifyParkingLotToken = require('../../middlewares/parking_lot/verifyParkingLotToken');
 const verifyUserToken = require('../../middlewares/users/verifyUserToken');
 
@@ -25,6 +24,6 @@ router.use('/user_authenticate', userAuthenticateRoute);
 router.use('/parking_lots', verifyUserToken, parkingLotsRouter);
 router.use('/reserve', verifyUserToken, reserveRouter);
 router.use('/histories', verifyUserToken, historiesRouter);
-router.use('/signup', limiter.signUpLimiter, signupRouter);
+router.use('/signup', signupRouter);
 
 module.exports = router;
