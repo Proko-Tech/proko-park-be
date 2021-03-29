@@ -93,4 +93,20 @@ describe('authentication test', function(){
                 .expect(401, done);
         });
     });
+
+    describe('POST /api/user_authenticate/social with successful log in', function() {
+        it('Should return a 202 response if the user signed up with a different method', function(done){
+            request(app).post('/api/user_authenticate/social')
+                .send({userData: successCredentialsGoogle})
+                .expect(202, done);
+        });
+    });
+
+    describe('POST /api/user_authenticate/social with failed log in', function() {
+        it('Should return a 401 response if the user signed up with a different method', function(done){
+            request(app).post('/api/user_authenticate/social')
+                .send({userData: successCredentialsNative})
+                .expect(401, done);
+        });
+    });
 });

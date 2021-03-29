@@ -53,6 +53,7 @@ router.post('/', async function(req, res){
 router.post('/social', async function(req, res){
     try {
         const {userData} = req.body;
+        if (userData.login_in_type === 'NATIVE') return res.status(401).json({status: 'failed', message: 'Account was signed up with a different method'});
         const result = await usersModel.getByEmail(userData.email);
         const isUserExist = !(result.length === 0);
         if (!isUserExist){
