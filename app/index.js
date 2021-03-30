@@ -12,6 +12,7 @@ const limiter = require('./middlewares/rate_limiters/config');
 
 
 const apiRouter = require('./routes/api');
+const indexRouter = require('./routes/index');
 
 const server = express();
 
@@ -27,7 +28,7 @@ server.use(cors());
 server.use(cookieParser());
 server.use(express.static(path.join(__dirname, 'public')));
 
-
+server.use('/', indexRouter);
 server.use('/api', apiRouter);
 
 server.use(function(req, res, next) {
