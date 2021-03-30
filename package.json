@@ -4,7 +4,7 @@
   "description": "Backend Rest API for proko park app under proko tech llc",
   "main": "app.js",
   "scripts": {
-    "test": "node_modules/mocha/bin/mocha test",
+    "test": "node_modules/mocha/bin/mocha test --exit",
     "start": "node app.js"
   },
   "repository": {
