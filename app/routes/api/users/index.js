@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt-nodejs');
 
+const pick = require('../../../../utils/pick');
+const mailer = require('../../../modules/mailer');
+
 const userModel = require('../../../../database/models/usersModel');
 const vehicleModel = require('../../../../database/models/vehiclesModel');
 const lotModel = require('../../../../database/models/lotsModel');
@@ -95,6 +98,26 @@ router.put('/attributes/verify_email', async function(req, res){
     } catch (err){
         res.status(500)
             .json({err, message: 'Unable to check password due to server error'});
+    }
+});
+
+router.get('/send_code', async function(req, res){
+    const {id} = req.userInfo;
+    try {
+        const result = await userModel.getById(id);
+        const mailerInfo = {
+            ...pick(result[0], ['first_name', 'last_name', 'email', 'verify_code']),
+        };
+        await mailer.sendEmail(mailerInfo, async function(err, resData) {
+            if (err) {
+                console.log(err);
+            }
+        });
+        res.status(200)
+            .json({status: 'success', message: 'code sent successfully'});
+    } catch (err){
+        res.status(500)
+            .json({err, message: 'Unable to resend code due to server error'});
     }
 });
 

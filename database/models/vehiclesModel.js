@@ -33,4 +33,29 @@ async function getById(id){
     return result;
 }
 
-module.exports={getByUserId, getById};
+/**
+ * insert vehicle with primary owner, also inserting vehicle ownership
+ * @param vehicle
+ * @param uid
+ * @returns {Promise<void>}
+ */
+async function insertPrimaryOwner(vehicle, uid) {
+    await db.transaction(async (transaction) => {
+        try {
+            const id = await db('vehicles')
+                .transacting(transaction)
+                .insert(vehicle)
+                .returning('id');
+            const vehicle_ownership = {
+                vehicle_id: id, user_id: uid, is_primary_owner: true,
+            };
+            await db('vehicle_ownership').insert(vehicle_ownership).transacting(transaction);
+            await transaction.commit();
+        } catch (err) {
+            console.log(err);
+            await transaction.rollback();
+        }
+    });
+}
+
+module.exports={getByUserId, getById, insertPrimaryOwner}
