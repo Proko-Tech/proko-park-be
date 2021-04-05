@@ -25,7 +25,7 @@ router.post('/closest', async function(req, res){
     const {lat, long} = req.body;
     try {
         const result = await lotsModel.getClosestByLatLong(lat, long);
-        const parking_lot_info = await Promise.all(result.map(element => {
+        const parking_lot_info = await Promise.all(result.map((element) => {
             const lot_info = {
                 ...element,
                 lot_id: element.id,
