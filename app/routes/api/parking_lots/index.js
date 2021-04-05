@@ -21,4 +21,28 @@ router.get('/:id', async function(req, res){
     }
 });
 
+router.post('/closest', async function(req, res){
+    const {lat, long} = req.body;
+    try {
+        const result = await lotsModel.getClosestByLatLong(lat, long);
+        const parking_lot_info = await Promise.all(result.map(element => {
+            const lot_info = {
+                ...element,
+                lot_id: element.id,
+            };
+            return lot_info;
+        }));
+        if (result) {
+            res.status(200)
+                .json({status: 'success', parking_lot_info});
+        } else {
+            res.status(404)
+                .json({status:'failed', parking_lot_info: 'Unable to find parking lot information'});
+        }
+    } catch (err) {
+        res.status(500)
+            .json({err, status:'failed', data: 'Unable to make request to server'});
+    }
+});
+
 module.exports = router;
