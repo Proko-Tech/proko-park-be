@@ -79,4 +79,19 @@ async function getById(id){
     return result;
 }
 
-module.exports={getByIdAndHash, markLotAliveStatusByIdAndHash, getLotAndSpotsByHash, getAndUnoccupiedSpotNumsById, getById};
+/**
+ * get closest lots by latitude and longitude
+ * @param id
+ * @returns {Promise<void>}
+ */
+async function getClosestByLatLong(lat, long){
+    const result = await db('lots')
+        .where('lat', '<=', lat+0.01)
+        .andWhere('lat', '>=', lat-0.01)
+        .andWhere('long', '<=', long+0.01)
+        .andWhere('long', '>=', long-0.01)
+        .select('*');
+    return result;
+}
+
+module.exports={getByIdAndHash, markLotAliveStatusByIdAndHash, getLotAndSpotsByHash, getAndUnoccupiedSpotNumsById, getById, getClosestByLatLong};
