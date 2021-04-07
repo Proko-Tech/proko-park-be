@@ -27,4 +27,14 @@ async function getByVehicleIdJoinUser(vehicle_id){
     return result;
 }
 
-module.exports={getByUserIdAndVehicleId, getByVehicleIdJoinUser};
+/**
+ * insert new record
+ * @param insertJson
+ * @returns {Promise<{status: string}>}
+ */
+async function insert(insertJson) {
+    await db('vehicle_ownership')
+        .insert(insertJson);
+}
+
+module.exports={getByUserIdAndVehicleId, getByVehicleIdJoinUser, insert};
