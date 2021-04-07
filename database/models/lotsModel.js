@@ -82,15 +82,23 @@ async function getById(id){
 /**
  * get closest lots by latitude and longitude
  * @param id
- * @returns {Promise<void>}
+ * @returns {Promise<unknown[]>}
  */
 async function getClosestByLatLong(lat, long){
-    const result = await db('lots')
+    const lots = await db('lots')
         .where('lat', '<=', lat+0.01)
         .andWhere('lat', '>=', lat-0.01)
         .andWhere('long', '<=', long+0.01)
         .andWhere('long', '>=', long-0.01)
         .select('*');
+    const result = await Promise.all(lots.map(async (lot)=> {
+        const spots = await spotsModel.getUnoccupiedByLotId(lot.id);
+        const lot_info = {
+            ...lot,
+            available_spots: spots.length,
+        };
+        return lot_info;
+    }));
     return result;
 }
 
