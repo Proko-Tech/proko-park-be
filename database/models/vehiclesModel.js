@@ -17,6 +17,7 @@ async function getByUserId(user_id){
             'vehicles.model',
             'vehicles.color',
             'vehicle_ownership.is_primary_owner',
+            'vehicle_ownership.status',
         ]);
     return results;
 }
