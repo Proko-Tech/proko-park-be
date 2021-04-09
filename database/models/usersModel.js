@@ -69,10 +69,6 @@ async function getAllById(id){
     return result;
 }
 
-<<<<<<< HEAD
-
-module.exports = {getById, getByEmailAndSignupType, getAllById, getByEmail, insert};
-=======
 /**
  * function that updates user by id
  * @param id
@@ -90,4 +86,3 @@ async function updateById(id, modified_user){
 }
 
 module.exports = {getById, getByEmailAndSignupType, updateById, getAllById, getByEmail, insert};
->>>>>>> 115675dafba68d2507cce7164b924161b203b711
