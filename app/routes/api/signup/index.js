@@ -53,6 +53,7 @@ router.post('/', limiter.signUpLimiter, async function(req, res){
 
 router.get('/checkEmail/:email', async function(req, res){
     const {email} = req.params;
+    console.log(email);
     try {
         const users = await userModel.getByEmail(email);
         if (users.length!==0) {

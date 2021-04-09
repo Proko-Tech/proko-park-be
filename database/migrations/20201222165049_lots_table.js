@@ -12,6 +12,7 @@ exports.up = function(knex) {
         tbl.text('hash').notNullable();
         tbl.boolean('alive_status').notNullable();
         tbl.decimal('price_per_hour').notNullable();
+        tbl.foreign('admin_id').references('admin_account.id');
         tbl.timestamps(true,true);// creates created_at column and updated_at column
     });
 };
