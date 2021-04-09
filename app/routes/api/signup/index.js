@@ -1,4 +1,5 @@
 const express = require('express');
+const limiter = require('../../../middlewares/rate_limiters/config');
 const router = express.Router();
 const bcrypt = require('bcrypt-nodejs');
 
@@ -11,7 +12,7 @@ const makeRandomCode = require('../../../../utils/makeRandomCode');
 const pick = require('../../../../utils/pick');
 
 
-router.post('/', async function(req, res){
+router.post('/', limiter.signUpLimiter, async function(req, res){
     const user = {
         ...req.body,
         verify_code: makeRandomCode(6),

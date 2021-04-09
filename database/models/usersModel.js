@@ -65,9 +65,29 @@ async function getAllById(id){
     const users = await db('users')
         .where({id})
         .select('*');
-    result.user = pick(users[0], ['id', 'first_name', 'last_name', 'email', 'phone_number', 'sign_up_type']);
+    result.user = pick(users[0], ['id', 'first_name', 'last_name', 'email', 'phone_number', 'sign_up_type', 'is_verified']);
     return result;
 }
 
+<<<<<<< HEAD
 
 module.exports = {getById, getByEmailAndSignupType, getAllById, getByEmail, insert};
+=======
+/**
+ * function that updates user by id
+ * @param id
+ * @param modified_user
+ * @returns {Promise<{user_status: string}>}
+ */
+async function updateById(id, modified_user){
+    try {
+        await db('users')
+            .update(modified_user);
+        return {uodate_status:'success'};
+    } catch (err) {
+        return {uodate_status:'failed'};
+    }
+}
+
+module.exports = {getById, getByEmailAndSignupType, updateById, getAllById, getByEmail, insert};
+>>>>>>> 115675dafba68d2507cce7164b924161b203b711

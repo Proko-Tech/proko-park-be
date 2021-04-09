@@ -3,6 +3,21 @@ const spotModel = require('./spotsModel');
 const pick = require('../../utils/pick');
 const removeDuplicates = require('../../utils/removeDuplicates');
 
+
+/**
+ * get with vehicle, and lot info by user id
+ * @param user_id
+ * @returns {Promise<void>}
+ */
+async function getWithVehicleAndLotByUserId(user_id){
+    const rows = await db('reservations')
+        .join('lots','reservations.lot_id', 'lots.id')
+        .join('vehicles', 'reservations.vehicle_id', 'vehicles.id')
+        .where({user_id})
+        .select('*');
+    return rows;
+}
+
 /**
  * get distinct lot information from user parking histories
  * @param user_id
@@ -231,4 +246,4 @@ async function insertAndHandleReserve(lot_id, user_id, vehicle_id){
     return result;
 }
 
-module.exports={getDistinctLotsByUserId, getByUserIdAndLotId, getReservedBySpotHashAndLotId, getReservedByUserId, getArrivedByUserId, getParkedByUserId, getArrivedByUserIdAndLotId, getParkedByUserIdAndLotId, getParkedBySpotHashAndLotId, getReservedByUserIdAndLotId, getArrivedBySpotHashAndLotId, updateById, insertAndHandleReserve};
+module.exports={getDistinctLotsByUserId, getByUserIdAndLotId, getReservedBySpotHashAndLotId, getWithVehicleAndLotByUserId, getReservedByUserId, getArrivedByUserId, getParkedByUserId, getArrivedByUserIdAndLotId, getParkedByUserIdAndLotId, getParkedBySpotHashAndLotId, getReservedByUserIdAndLotId, getArrivedBySpotHashAndLotId, updateById, insertAndHandleReserve};
