@@ -1,17 +1,5 @@
 const express = require('express');
 const router = express.Router();
-<<<<<<< HEAD
-
-const userModel = require('../../../../database/models/usersModel');
-
-
-router.post('/', async function(req, res){
-    const user = req.body;
-    console.log(user);
-    try {
-        const users = await userModel.insertUser(user);
-        if (users.length!=0) {
-=======
 const bcrypt = require('bcrypt-nodejs');
 
 const userModel = require('../../../../database/models/usersModel');
@@ -64,10 +52,10 @@ router.post('/', async function(req, res){
 
 router.get('/checkEmail/:email', async function(req, res){
     const {email} = req.params;
+    console.log(email);
     try {
         const users = await userModel.getByEmail(email);
         if (users.length!==0) {
->>>>>>> 4e68cb9d182247b8064131f2a8138e16e17a3318
             res.status(401)
                 .json({status: 'failed', msg: 'Another account using this email was found'});
         } else {
@@ -79,8 +67,5 @@ router.get('/checkEmail/:email', async function(req, res){
             .json({err, message: 'Unable to get user from database'})
     }
 });
-<<<<<<< HEAD
-=======
 
->>>>>>> 4e68cb9d182247b8064131f2a8138e16e17a3318
 module.exports = router;
