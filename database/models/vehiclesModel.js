@@ -17,6 +17,7 @@ async function getByUserId(user_id){
             'vehicles.model',
             'vehicles.color',
             'vehicle_ownership.is_primary_owner',
+            'vehicle_ownership.status',
         ]);
     return results;
 }
@@ -47,7 +48,7 @@ async function insertPrimaryOwner(vehicle, uid) {
                 .insert(vehicle)
                 .returning('id');
             const vehicle_ownership = {
-                vehicle_id: id, user_id: uid, is_primary_owner: true,
+                vehicle_id: id, user_id: uid, is_primary_owner: true, status: 'ACCEPTED',
             };
             await db('vehicle_ownership').insert(vehicle_ownership).transacting(transaction);
             await transaction.commit();
