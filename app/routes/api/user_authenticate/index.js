@@ -73,7 +73,7 @@ router.post('/social', async function(req, res){
             };
             const token = await tokenUtil.generateToken(userInfo);
             return res.status(202)
-                .json({status: 'success', data: token});
+                .json({status: 'success', data: token, type: 'SIGNUP'});
         } else {
             // const isPasswordMatch = bcrypt.compareSync(userData.password, result[0].password);
             // if (!isPasswordMatch) return res.status(404).json({status: 'failed', message: 'Unauthorized action'});
@@ -83,7 +83,7 @@ router.post('/social', async function(req, res){
             };
             const token = await tokenUtil.generateToken(userInfo);
             return res.status(202)
-                .json({status: 'success', data: token});
+                .json({status: 'success', data: token, type: 'LOGIN'});
         }
         // }
     } catch (err){
