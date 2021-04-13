@@ -59,4 +59,25 @@ async function insertPrimaryOwner(vehicle, uid) {
     });
 }
 
-module.exports={getByUserId, getById, insertPrimaryOwner}
+/**
+ * delete vehicle & ownership information by vehicle id
+ * @param id
+ * @returns {Promise<void>}
+ */
+async function deleteByIdTransactOwnership(id){
+    await db.transaction(async (transaction) => {
+        try {
+            await db('vehicles')
+                .transacting(transaction)
+                .where({id})
+                .del();
+            await db('vehicle_ownership').where({vehicle_id: id}).del().transacting(transaction);
+            await transaction.commit();
+        } catch (err) {
+            console.log(err);
+            await transaction.rollback();
+        }
+    });
+}
+
+module.exports={getByUserId, getById, insertPrimaryOwner, deleteByIdTransactOwnership};
