@@ -15,8 +15,6 @@ const membership_status_enum = [
 exports.up = function(knex) {
     return knex.schema.createTable('admin_accounts', (tbl)=>{
         tbl.increments('id').unique().notNullable();
-        tbl.text('admin_fname').notNullable();
-        tbl.text('admin_lname').notNullable();
         tbl.text('admin_email').notNullable();
         tbl.text('admin_phone_number').notNullable();
         tbl.text('admin_username').notNullable();
