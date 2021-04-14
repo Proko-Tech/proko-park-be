@@ -21,7 +21,6 @@ exports.up = function(knex) {
         tbl.text('admin_phone_number').notNullable();
         tbl.text('admin_username').notNullable();
         tbl.text('admin_password_hash').notNullable();
-        tbl.text('admin_password_salt').notNullable();
         tbl.text('organization_name').notNullable();
         tbl.enum('membership_status', membership_status_enum, {useNative: true, enumName:'membership_status_enum'}).notNullable().index();
         tbl.text('notes');
