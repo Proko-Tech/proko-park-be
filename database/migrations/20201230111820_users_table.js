@@ -15,6 +15,7 @@ exports.up = function(knex) {
         tbl.enum('sign_up_type', sign_up_type_enum, {useNative: true, enumName:'sign_up_type_enum'}).notNullable().index();
         tbl.boolean('is_verified').defaultTo(false);
         tbl.text('verify_code');
+        tbl.text('stripe_customer_id');
     });
 };
 
