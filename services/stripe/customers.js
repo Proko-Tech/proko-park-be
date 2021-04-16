@@ -52,4 +52,20 @@ async function updateDefaultSource(cardSource, stripeCustomerId){
         stripeCustomerId,
         {default_source: cardSource},
     );
+    return customer;
 }
+
+/**
+ * create new customer by name and email
+ * @param name
+ * @param email
+ * @returns {Promise<*>}
+ */
+async function create(name, email){
+    const customer = await stripe.customers.create({
+        name, email,
+    });
+    return customer;
+}
+
+module.exports={create, getCardsByCustomerId, addNewCardByCustomerId, removeCardByCustomerId, updateDefaultSource};
