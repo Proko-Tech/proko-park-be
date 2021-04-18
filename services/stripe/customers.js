@@ -14,6 +14,20 @@ async function getCardsByCustomerId(stripeCustomerId){
 }
 
 /**
+ * get card by customer id and source id
+ * @param stripeCustomerId
+ * @param sourceId
+ * @returns {Promise<(AccountDebitSource & {headers: {[p: string]: string}; lastResponse: {requestId: string; statusCode: number; apiVersion?: string; idempotencyKey?: string; stripeAccount?: string}})|(AlipayAccount & {headers: {[p: string]: string}; lastResponse: {requestId: string; statusCode: number; apiVersion?: string; idempotencyKey?: string; stripeAccount?: string}})|(BankAccount & {headers: {[p: string]: string}; lastResponse: {requestId: string; statusCode: number; apiVersion?: string; idempotencyKey?: string; stripeAccount?: string}})|(BitcoinReceiver & {headers: {[p: string]: string}; lastResponse: {requestId: string; statusCode: number; apiVersion?: string; idempotencyKey?: string; stripeAccount?: string}})|(Card & {headers: {[p: string]: string}; lastResponse: {requestId: string; statusCode: number; apiVersion?: string; idempotencyKey?: string; stripeAccount?: string}})|(Source & {headers: {[p: string]: string}; lastResponse: {requestId: string; statusCode: number; apiVersion?: string; idempotencyKey?: string; stripeAccount?: string}})>}
+ */
+async function getCardByCustomerId(stripeCustomerId, sourceId){
+    const card = await stripe.customers.retrieveSource(
+        stripeCustomerId,
+        sourceId,
+    );
+    return card;
+}
+
+/**
  * add a new card by stripe customer id with token
  * @param cardToken
  * @param stripeCustomerId
@@ -68,4 +82,4 @@ async function create(name, email){
     return customer;
 }
 
-module.exports={create, getCardsByCustomerId, addNewCardByCustomerId, removeCardByCustomerId, updateDefaultSource};
+module.exports={create, getCardsByCustomerId, getCardByCustomerId, addNewCardByCustomerId, removeCardByCustomerId, updateDefaultSource};

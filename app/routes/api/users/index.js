@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt-nodejs');
 
 const pick = require('../../../../utils/pick');
 const mailer = require('../../../modules/mailer');
+const stripeCustomer = require('../../../../services/stripe/customers');
 
 const userModel = require('../../../../database/models/usersModel');
 const vehicleModel = require('../../../../database/models/vehiclesModel');
@@ -121,6 +122,40 @@ router.get('/send_code', async function(req, res){
     }
 });
 
+router.post('/addCard', async function(req, res){
+    const {id} = req.userInfo;
+    const {card_source} = req.body;
+    try {
+        const result = await userModel.getById(id);
+        if (result.length === 0){
+            return res.status(404).json({status: 'failed', message: 'User not found'});
+        }
+        const cardInfo = await stripeCustomer.addNewCardByCustomerId(card_source, result[0].stripe_customer_id);
+        return res.status(200)
+            .json({status: 'success', message: 'add card successfully', card: cardInfo});
+    } catch (err){
+        res.status(500)
+            .json({err, message: 'Unable to resend code due to server error'});
+    }
+});
+
+router.delete('/deleteCard/:card_source', async function(req, res){
+    const {id} = req.userInfo;
+    const {card_source} = req.params;
+    try {
+        const result = await userModel.getById(id);
+        if (result.length === 0){
+            return res.status(404).json({status: 'failed', message: 'User not found'});
+        }
+        const cardInfo = await stripeCustomer.removeCardByCustomerId(card_source, result[0].stripe_customer_id);
+        return res.status(200)
+            .json({status: 'success', message: 'remove card successfully', card: cardInfo});
+    } catch (err){
+        res.status(500)
+            .json({err, message: 'Unable to resend code due to server error'});
+    }
+});
+
 router.get('/:id', async function(req, res){
     const {id} = req.params;
     try {
@@ -142,6 +177,9 @@ router.get('/:id', async function(req, res){
                         vehicle: vehicles[0],
                         parking_lot: lots[0],
                         status: 'RESERVED',
+                        reserved_at: currentReservation[0].reserved_at,
+                        arrived_at: currentReservation[0].arrived_at,
+                        parked_at: currentReservation[0].parked_at,
                     };
                 }
                 if (currentArrivedTasks.length > 0) {
@@ -151,6 +189,9 @@ router.get('/:id', async function(req, res){
                         vehicle: vehicles[0],
                         parking_lot: lots[0],
                         status: 'ARRIVED',
+                        reserved_at: currentArrivedTasks[0].reserved_at,
+                        arrived_at: currentArrivedTasks[0].arrived_at,
+                        parked_at: currentArrivedTasks[0].parked_at,
                     };
                 }
                 if (currentParkedTasks.length > 0) {
@@ -160,15 +201,20 @@ router.get('/:id', async function(req, res){
                         vehicle: vehicles[0],
                         parking_lot: lots[0],
                         status: 'PARKED',
+                        reserved_at: currentParkedTasks[0].reserved_at,
+                        arrived_at: currentParkedTasks[0].arrived_at,
+                        parked_at: currentParkedTasks[0].parked_at,
                     };
                 }
             }
-            res.status(200).json({data: user, reservation_info, msg: 'User info was found'});
+            const card_information = await stripeCustomer.getCardsByCustomerId(user.user.stripe_customer_id);
+            res.status(200).json({data: user, reservation_info, card_information, msg: 'User info was found'});
         } else {
             res.status(401)
                 .json({status: 'failed', message: 'Unauthorized action'});
         }
     } catch (err) {
+        console.log(err);
         res.status(500)
             .json({err, message: 'Unable to get user from database'})
     }

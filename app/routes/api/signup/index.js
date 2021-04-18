@@ -7,7 +7,7 @@ const userModel = require('../../../../database/models/usersModel');
 const tokenUtil = require('../../../auth/users/tokenUtil');
 
 const mailer = require('../../../modules/mailer');
-const customers = require('../../../../services/stripe/customers');
+const stripeCustomer = require('../../../../services/stripe/customers');
 
 const makeRandomCode = require('../../../../utils/makeRandomCode');
 const pick = require('../../../../utils/pick');
@@ -25,7 +25,7 @@ router.post('/', limiter.signUpLimiter, async function(req, res){
             res.status(401)
                 .json({status: 'failed', message: 'Another account using this email was found'});
         } else {
-            const stripe_profile = await customers.create(user.first_name+' '+user.last_name, user.email);
+            const stripe_profile = await stripeCustomer.create(user.first_name+' '+user.last_name, user.email);
             user.stripe_customer_id = stripe_profile.id;
             const {user_status} = await userModel.insert(user);
             if (user_status === 'failed'){
@@ -49,6 +49,7 @@ router.post('/', limiter.signUpLimiter, async function(req, res){
                 .json({status: 'success', data:token, message: 'success'});
         }
     } catch (err) {
+        console.log(err);
         res.status(500)
             .json({err, message: 'Unable to get user from database'})
     }

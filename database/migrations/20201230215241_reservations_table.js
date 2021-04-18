@@ -17,6 +17,7 @@ exports.up = function(knex) {
         tbl.float('total_price').defaultTo(0).notNullable();
         tbl.boolean('is_paid').defaultTo(false);
         tbl.text('stripe_charge_id');
+        tbl.text('card_id');
         tbl.datetime('reserved_at');
         tbl.datetime('arrived_at');
         tbl.datetime('parked_at');

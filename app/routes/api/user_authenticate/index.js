@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt-nodejs');
 
 const usersModel = require('../../../../database/models/usersModel');
 const tokenUtil = require('../../../auth/users/tokenUtil');
+const stripeCustomer = require('../../../../services/stripe/customers');
 
 const pick = require('../../../../utils/pick');
 
@@ -57,6 +58,7 @@ router.post('/social', async function(req, res){
         const result = await usersModel.getByEmail(userData.email);
         const isUserExist = !(result.length === 0);
         if (!isUserExist){
+            const stripe_profile = await stripeCustomer.create(userData.first_name+' '+userData.last_name, userData.email);
             const user = {
                 email: userData.email,
                 first_name: userData.first_name,
@@ -65,6 +67,7 @@ router.post('/social', async function(req, res){
                 verify_code: 'SOCIAL_SIGNUP',
                 sign_up_type: userData.login_in_type,
                 is_verified: true,
+                stripe_customer_id: stripe_profile.id,
             };
             const {user_status} = await usersModel.insert(user);
             const inserted_user = await usersModel.getByEmail(userData.email);

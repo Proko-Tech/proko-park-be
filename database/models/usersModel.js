@@ -65,7 +65,7 @@ async function getAllById(id){
     const users = await db('users')
         .where({id})
         .select('*');
-    result.user = pick(users[0], ['id', 'first_name', 'last_name', 'email', 'phone_number', 'sign_up_type', 'is_verified']);
+    result.user = pick(users[0], ['id', 'first_name', 'last_name', 'email', 'phone_number', 'sign_up_type', 'is_verified', 'stripe_customer_id']);
     return result;
 }
 

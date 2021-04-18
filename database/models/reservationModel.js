@@ -210,7 +210,7 @@ async function updateById(id, reservation_info){
  * @param vehicle_id
  * @returns {Promise<{reservation_status: string}>}
  */
-async function insertAndHandleReserve(lot_id, user_id, vehicle_id){
+async function insertAndHandleReserve(lot_id, user_id, vehicle_id, card_id){
     const result = {reservation_status: 'failed'};
     await db.transaction(async (transaction) => {
         try {
@@ -227,7 +227,7 @@ async function insertAndHandleReserve(lot_id, user_id, vehicle_id){
                 .update({spot_status: 'RESERVED'})
                 .transacting(transaction);
             const reservationInfo = {
-                user_id, lot_id, vehicle_id,
+                user_id, lot_id, vehicle_id, card_id,
                 spot_hash: spotInfo.secret,
                 reserved_at: new Date(),
                 status: 'RESERVED',
