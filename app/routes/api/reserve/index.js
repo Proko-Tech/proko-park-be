@@ -16,7 +16,7 @@ router.post('/', async function(req, res){
     const userInfo = req.userInfo;
     const {lot_id, vehicle_id, card_id} = req.body;
     try {
-        const unoccupiedSpots = await spotsModel.getUnoccupiedByLotId(lot_id);
+        const unoccupiedSpots = await spotsModel.getUnoccupiedAndNotElectricByLotId(lot_id);
         const vehicleOwnerRecords = await vehicleOwnershipModel.getByUserIdAndVehicleId(userInfo.id, vehicle_id);
         const userCurrentReservedTasks = await reservationModel.getReservedByUserIdAndLotId(userInfo.id, lot_id);
         const userCurrentArrivedTasks = await reservationModel.getArrivedByUserIdAndLotId(userInfo.id, lot_id);
@@ -32,7 +32,7 @@ router.post('/', async function(req, res){
         const isValidReservation = !isUserCurrentlyHasTask && !isLotFull && isUserOwnVehicle && isUserValid;
 
         if (isValidReservation){
-            const {reservation_status} = await reservationModel.insertAndHandleReserve(lot_id, userInfo.id, vehicle_id, card_id);
+            const {reservation_status} = await reservationModel.insertAndHandleNonElectricReserve(lot_id, userInfo.id, vehicle_id, card_id);
             if (reservation_status === 'failed'){
                 res.status(404)
                     .json({status: 'failed', data: 'Unauthorized reservation'});

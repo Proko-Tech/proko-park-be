@@ -56,6 +56,34 @@ async function getUnoccupiedByLotId(lot_id){
 }
 
 /**
+ * Getting unoccupied spots by Lot id
+ * @param lot_id
+ * @returns {Promise<void>}
+ */
+async function getUnoccupiedElectricByLotId(lot_id){
+    const result = await db('spots')
+        .where({lot_id})
+        .andWhere({spot_status: 'UNOCCUPIED'})
+        .andWhere({is_charging_station: true})
+        .select('*');
+    return result;
+}
+
+/**
+ * Getting unoccupied spots by Lot id
+ * @param lot_id
+ * @returns {Promise<void>}
+ */
+async function getUnoccupiedAndNotElectricByLotId(lot_id){
+    const result = await db('spots')
+        .where({lot_id})
+        .andWhere({spot_status: 'UNOCCUPIED'})
+        .andWhere({is_charging_station: false})
+        .select('*');
+    return result;
+}
+
+/**
  * get spots by id
  * @param id
  * @returns {Promise<void>}
@@ -79,4 +107,4 @@ async function getBySecret(secret){
     return result;
 }
 
-module.exports={updateSpotStatus, getSpotsByLotId, getUnoccupiedByLotId, getById, getBySecret, getUnoccupiedByLotId};
+module.exports={updateSpotStatus, getSpotsByLotId, getUnoccupiedByLotId, getById, getBySecret, getUnoccupiedByLotId, getUnoccupiedElectricByLotId, getUnoccupiedAndNotElectricByLotId};

@@ -203,18 +203,19 @@ async function updateById(id, reservation_info){
 
 /**
  * check empty spots in the requested parking lot, randomly choose index from the
- * empty spots, mark reserve then insert new reservation record.
+ * empty spots, mark reserve then insert new reservation record. for non electric
+ * spots
  *
  * @param lot_id
  * @param user_id
  * @param vehicle_id
  * @returns {Promise<{reservation_status: string}>}
  */
-async function insertAndHandleReserve(lot_id, user_id, vehicle_id, card_id){
+async function insertAndHandleNonElectricReserve(lot_id, user_id, vehicle_id, card_id){
     const result = {reservation_status: 'failed'};
     await db.transaction(async (transaction) => {
         try {
-            const emptySpots = await spotModel.getUnoccupiedByLotId(lot_id);
+            const emptySpots = await spotModel.getUnoccupiedAndNotElectricByLotId(lot_id);
             if (emptySpots.length === 0) await transaction.rollback();
             const props = ['secret', 'lot_id'];
             const spotInfo = {
@@ -246,4 +247,4 @@ async function insertAndHandleReserve(lot_id, user_id, vehicle_id, card_id){
     return result;
 }
 
-module.exports={getDistinctLotsByUserId, getByUserIdAndLotId, getReservedBySpotHashAndLotId, getWithVehicleAndLotByUserId, getReservedByUserId, getArrivedByUserId, getParkedByUserId, getArrivedByUserIdAndLotId, getParkedByUserIdAndLotId, getParkedBySpotHashAndLotId, getReservedByUserIdAndLotId, getArrivedBySpotHashAndLotId, updateById, insertAndHandleReserve};
+module.exports={getDistinctLotsByUserId, getByUserIdAndLotId, getReservedBySpotHashAndLotId, getWithVehicleAndLotByUserId, getReservedByUserId, getArrivedByUserId, getParkedByUserId, getArrivedByUserIdAndLotId, getParkedByUserIdAndLotId, getParkedBySpotHashAndLotId, getReservedByUserIdAndLotId, getArrivedBySpotHashAndLotId, updateById, insertAndHandleNonElectricReserve};
