@@ -16,6 +16,23 @@ router.post('/', async function(req, res){
     }
 });
 
+router.put('/:vehicle_id', async function(req, res){
+    const {vehicle_id} = req.params;
+    const {id} = req.userInfo;
+    try {
+        const vehicleOwnerRecords = await vehicleOwnershipModel.getByUserIdAndVehicleId(id, vehicle_id);
+        const isUserAuthorized = vehicleOwnerRecords.length>0 && vehicleOwnerRecords[0].is_primary_owner;
+        if (!isUserAuthorized)
+            return res.status(401)
+                .json({status: 'failed', message: 'Unauthorized action'});
+        await vehiclesModel.updateById(vehicle_id, req.body);
+        return res.status(200).json({status: 'success', message: 'Successfully updated vehicle'});
+    } catch (err){
+        return res.status(500)
+            .json({err, message: 'Unable to insert vehicle due to server errors'})
+    }
+});
+
 router.get('/ownership/:vehicle_id', async function(req, res){
     const {vehicle_id} = req.params;
     const {id} = req.userInfo;

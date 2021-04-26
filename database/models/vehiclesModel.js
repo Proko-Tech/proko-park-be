@@ -35,6 +35,18 @@ async function getById(id){
 }
 
 /**
+ *
+ * @param id
+ * @param updated_json
+ * @returns {Promise<void>}
+ */
+async function updateById(id, updated_json){
+    await db('vehicles')
+        .where({id})
+        .update(updated_json);
+}
+
+/**
  * insert vehicle with primary owner, also inserting vehicle ownership
  * @param vehicle
  * @param uid
@@ -80,4 +92,4 @@ async function deleteByIdTransactOwnership(id){
     });
 }
 
-module.exports={getByUserId, getById, insertPrimaryOwner, deleteByIdTransactOwnership};
+module.exports={getByUserId, getById, updateById, insertPrimaryOwner, deleteByIdTransactOwnership};
