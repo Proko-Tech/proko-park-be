@@ -11,6 +11,7 @@ const transporter = nodemailer.createTransport({
         user: process.env.EMAILUSER, // generated ethereal user
         pass: process.env.EMAILPASSWORD, // generated ethereal password
     },
+    from: process.env.EMAILUSER,
 });
 
 const sendEmail = (info, callback) => {
