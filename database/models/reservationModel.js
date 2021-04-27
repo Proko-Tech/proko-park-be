@@ -3,6 +3,76 @@ const spotModel = require('./spotsModel');
 const pick = require('../../utils/pick');
 const removeDuplicates = require('../../utils/removeDuplicates');
 
+/**
+ * get reservation by id
+ * @param id
+ * @returns {Promise<void>}
+ */
+async function getById(id){
+    const rows = await db('reservations')
+        .where({id})
+        .select('*');
+    return rows;
+}
+
+/**
+ * get canceled reservations after a date and user id
+ * @param reserved_at
+ * @returns {Promise<void>}
+ */
+async function getCanceledAfterDateAndUid(user_id, reserved_at){
+    const rows = await db('reservations')
+        .where('reserved_at', '>=', reserved_at)
+        .andWhere({status: 'CANCELED'})
+        .andWhere({user_id})
+        .select('*');
+    return rows;
+};
+
+/**
+ * get by user id
+ * @param user_id
+ * @returns {Promise<void>}
+ */
+async function getWithLotByUserId(user_id){
+    const rows = await db('reservations')
+        .join('lots','reservations.lot_id', 'lots.id')
+        .where({user_id})
+        .select('*');
+    return rows;
+}
+
+/**
+ * update reservation to cancel and spots by id
+ * @param id
+ * @returns {Promise<{reservation_status: string}>}
+ */
+async function updateCancelById(id){
+    const result = {reservation_status: 'failed'};
+    await db.transaction(async (transaction) => {
+        try {
+            await db('reservations')
+                .update({status: 'CANCELED'})
+                .where({id})
+                .transacting(transaction);
+            const reservation = await db('reservations')
+                .where({id})
+                .select('*');
+            await db('spots')
+                .update({spot_status: 'UNOCCUPIED'})
+                .where({secret: reservation[0].spot_hash})
+                .andWhere({lot_id: reservation[0].lot_id})
+                .transacting(transaction);
+            result.reservation_status = 'success';
+            await transaction.commit();
+        } catch (err) {
+            console.log(err);
+            result.reservation_status = 'failed';
+            await transaction.rollback();
+        }
+    });
+    return result;
+}
 
 /**
  * get with vehicle, and lot info by user id
@@ -203,18 +273,19 @@ async function updateById(id, reservation_info){
 
 /**
  * check empty spots in the requested parking lot, randomly choose index from the
- * empty spots, mark reserve then insert new reservation record.
+ * empty spots, mark reserve then insert new reservation record. for non electric
+ * spots
  *
  * @param lot_id
  * @param user_id
  * @param vehicle_id
  * @returns {Promise<{reservation_status: string}>}
  */
-async function insertAndHandleReserve(lot_id, user_id, vehicle_id, card_id){
+async function insertAndHandleNonElectricReserve(lot_id, user_id, vehicle_id, card_id){
     const result = {reservation_status: 'failed'};
     await db.transaction(async (transaction) => {
         try {
-            const emptySpots = await spotModel.getUnoccupiedByLotId(lot_id);
+            const emptySpots = await spotModel.getUnoccupiedAndNotElectricByLotId(lot_id);
             if (emptySpots.length === 0) await transaction.rollback();
             const props = ['secret', 'lot_id'];
             const spotInfo = {
@@ -226,8 +297,12 @@ async function insertAndHandleReserve(lot_id, user_id, vehicle_id, card_id){
                 .andWhere({secret: spotInfo.secret})
                 .update({spot_status: 'RESERVED'})
                 .transacting(transaction);
+            const vehicle = await db('vehicles')
+                .where({id: vehicle_id})
+                .select('*');
             const reservationInfo = {
                 user_id, lot_id, vehicle_id, card_id,
+                license_plate: vehicle[0].license_plate,
                 spot_hash: spotInfo.secret,
                 reserved_at: new Date(),
                 status: 'RESERVED',
@@ -246,4 +321,4 @@ async function insertAndHandleReserve(lot_id, user_id, vehicle_id, card_id){
     return result;
 }
 
-module.exports={getDistinctLotsByUserId, getByUserIdAndLotId, getReservedBySpotHashAndLotId, getWithVehicleAndLotByUserId, getReservedByUserId, getArrivedByUserId, getParkedByUserId, getArrivedByUserIdAndLotId, getParkedByUserIdAndLotId, getParkedBySpotHashAndLotId, getReservedByUserIdAndLotId, getArrivedBySpotHashAndLotId, updateById, insertAndHandleReserve};
+module.exports={getById, getWithLotByUserId, getCanceledAfterDateAndUid, updateCancelById, getDistinctLotsByUserId, getByUserIdAndLotId, getReservedBySpotHashAndLotId, getWithVehicleAndLotByUserId, getReservedByUserId, getArrivedByUserId, getParkedByUserId, getArrivedByUserIdAndLotId, getParkedByUserIdAndLotId, getParkedBySpotHashAndLotId, getReservedByUserIdAndLotId, getArrivedBySpotHashAndLotId, updateById, insertAndHandleNonElectricReserve};

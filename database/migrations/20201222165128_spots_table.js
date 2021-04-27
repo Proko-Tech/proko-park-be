@@ -11,6 +11,7 @@ exports.up = function(knex) {
         tbl.text('spot_name');
         tbl.text('secret').notNullable();
         tbl.boolean('alive_status').notNullable();
+        tbl.boolean('is_charging_station').notNullable();
         tbl.enum('spot_status', spot_status_enum, {useNative: true, enumName:'spot_status_enum'}).notNullable().index();
         tbl.timestamps(true,true);// creates created_at column and updated_at column
     });

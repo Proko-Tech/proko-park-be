@@ -68,6 +68,27 @@ async function getAndUnoccupiedSpotNumsById(id){
 }
 
 /**
+ * get parking lot and its open spots with parameter
+ * @param id
+ * @returns {Promise<{available_spots: *}>}
+ */
+async function getAndUnoccupiedElectricSpotNumsById(id){
+    const lot = await db('lots')
+        .where({id})
+        .select('*');
+    if (lot.length>0) {
+        const spots = await spotsModel.getUnoccupiedElectricByLotId(lot[0].id);
+        const result = {
+            ...lot[0],
+            available_spots: spots.length,
+        };
+        return result;
+    } else {
+        return null;
+    }
+}
+
+/**
  * get lot info by id
  * @param id
  * @returns {Promise<void>}
@@ -93,13 +114,15 @@ async function getClosestByLatLong(lat, long){
         .select('*');
     const result = await Promise.all(lots.map(async (lot)=> {
         const spots = await spotsModel.getUnoccupiedByLotId(lot.id);
+        const electric_spots = await spotsModel.getUnoccupiedElectricByLotId(lot.id);
         const lot_info = {
             ...lot,
             available_spots: spots.length,
+            available_electric_spots: electric_spots.length,
         };
         return lot_info;
     }));
     return result;
 }
 
-module.exports={getByIdAndHash, markLotAliveStatusByIdAndHash, getLotAndSpotsByHash, getAndUnoccupiedSpotNumsById, getById, getClosestByLatLong};
+module.exports={getByIdAndHash, markLotAliveStatusByIdAndHash, getLotAndSpotsByHash, getAndUnoccupiedSpotNumsById, getAndUnoccupiedElectricSpotNumsById, getById, getClosestByLatLong};

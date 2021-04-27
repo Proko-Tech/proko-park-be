@@ -11,6 +11,7 @@ exports.up = function(knex) {
         tbl.increments('id').unique().notNullable();
         tbl.integer('user_id').notNullable();
         tbl.integer('vehicle_id').notNullable();
+        tbl.text('license_plate').notNullable();
         tbl.text('spot_hash').notNullable();
         tbl.integer('lot_id').notNullable();
         tbl.float('elapsed_time').defaultTo(0).notNullable();
