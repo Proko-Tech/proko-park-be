@@ -16,6 +16,25 @@ router.post('/', async function(req, res){
     }
 });
 
+router.put('/accept', async function(req, res){
+    const {id} = req.userInfo;
+    const {vehicle_id} = req.body;
+
+    try {
+        const vehicle_ownership = await vehicleOwnershipModel.getByUserIdAndVehicleId(id, vehicle_id);
+        const isAuthroized = vehicle_ownership.length !== 0;
+        if (!isAuthroized){
+            return res.status(401)
+                .json({status: 'failed', message: 'Unauthorized action'});
+        }
+        await vehicleOwnershipModel.updateById(vehicle_ownership[0].id, {status: 'ACCEPTED'});
+        return res.status(200).json({status: 'success', message: 'Successfully updated ownership record'});
+    } catch (err){
+        return res.status(500)
+            .json({err, message: 'Unable to accept vehicle ownership due to server errors'});
+    }
+});
+
 router.put('/:vehicle_id', async function(req, res){
     const {vehicle_id} = req.params;
     const {id} = req.userInfo;
@@ -93,25 +112,6 @@ router.post('/ownership', async function(req, res){
     } catch (err){
         return res.status(500)
             .json({err, message: 'Unable to insert vehicle ownership due to server errors'})
-    }
-});
-
-router.put('/accept', async function(req, res){
-    const {id} = req.userInfo;
-    const {vehicle_id} = req.body;
-
-    try {
-        const vehicle_ownership = await vehicleOwnershipModel.getByUserIdAndVehicleId(id, vehicle_id);
-        const isAuthroized = vehicle_ownership.length !== 0;
-        if (!isAuthroized){
-            return res.status(401)
-                .json({status: 'failed', message: 'Unauthorized action'});
-        }
-        await vehicleOwnershipModel.updateById(vehicle_ownership[0].id, {status: 'ACCEPTED'});
-        return res.status(200).json({status: 'success', message: 'Successfully updated ownership record'});
-    } catch (err){
-        return res.status(500)
-            .json({err, message: 'Unable to accept vehicle ownership due to server errors'});
     }
 });
 
