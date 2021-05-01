@@ -78,6 +78,7 @@ async function getAllById(id){
 async function updateById(id, modified_user){
     try {
         await db('users')
+            .where({id})
             .update(modified_user);
         return {uodate_status:'success'};
     } catch (err) {
