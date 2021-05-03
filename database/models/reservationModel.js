@@ -100,9 +100,11 @@ async function getDistinctLotsByUserId(user_id){
         .distinct(['lot_id', 'reserved_at', 'arrived_at','exited_at', 'name', 'lat', 'long', 'address', 'state', 'city', 'zip', 'alive_status', 'price_per_hour']);
     const result = await Promise.all(rows.map(async (row)=>{
         const spots = await spotModel.getUnoccupiedByLotId(row.lot_id);
+        const electric_spots = await spotModel.getUnoccupiedElectricByLotId(row.lot_id);
         const lot_info = {
             ...row,
             available_spots: spots.length,
+            available_electric_spots: electric_spots.length,
         };
         return lot_info;
     }));

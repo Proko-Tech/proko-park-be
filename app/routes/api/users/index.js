@@ -22,6 +22,7 @@ router.get('/parking_lot/:id', async function(req, res){
                 .json({status: 'failed', message: 'Unauthorized action'});
         }
     } catch (err) {
+        console.log(err);
         res.status(500)
             .json({err, message: 'Unable to get parking lot histories from database'});
     }
