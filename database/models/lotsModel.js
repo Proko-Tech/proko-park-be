@@ -107,10 +107,10 @@ async function getById(id){
  */
 async function getClosestByLatLong(lat, long){
     const lots = await db('lots')
-        .where('lat', '<=', lat+0.01)
-        .andWhere('lat', '>=', lat-0.01)
-        .andWhere('long', '<=', long+0.01)
-        .andWhere('long', '>=', long-0.01)
+        .where('lat', '<=', lat+0.02)
+        .andWhere('lat', '>=', lat-0.02)
+        .andWhere('long', '<=', long+0.02)
+        .andWhere('long', '>=', long-0.02)
         .select('*');
     const result = await Promise.all(lots.map(async (lot)=> {
         const spots = await spotsModel.getUnoccupiedByLotId(lot.id);
