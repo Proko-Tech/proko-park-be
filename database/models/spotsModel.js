@@ -1,4 +1,5 @@
 const db = require('../dbConfig');
+const pick = require('../../utils/pick');
 
 /**
  * update spots in the array to the updated status
@@ -30,19 +31,6 @@ async function getSpotsByLotId(lot_id){
 }
 
 /**
- * get unoccupied spots by lot id
- * @param lot_id
- * @returns {Promise<void>}
- */
-async function getUnoccupiedByLotId(lot_id){
-    const result = await db('spots')
-        .where({lot_id})
-        .andWhere({status: 'UNOCCUPIED'})
-        .select('*');
-    return result;
-}
-
-/**
  * Getting unoccupied spots by Lot id
  * @param lot_id
  * @returns {Promise<void>}
@@ -51,6 +39,7 @@ async function getUnoccupiedByLotId(lot_id){
     const result = await db('spots')
         .where({lot_id})
         .andWhere({spot_status: 'UNOCCUPIED'})
+        .andWhere({alive_status: true})
         .select('*');
     return result;
 }
@@ -65,6 +54,7 @@ async function getUnoccupiedElectricByLotId(lot_id){
         .where({lot_id})
         .andWhere({spot_status: 'UNOCCUPIED'})
         .andWhere({is_charging_station: true})
+        .andWhere({alive_status: true})
         .select('*');
     return result;
 }
@@ -79,6 +69,7 @@ async function getUnoccupiedAndNotElectricByLotId(lot_id){
         .where({lot_id})
         .andWhere({spot_status: 'UNOCCUPIED'})
         .andWhere({is_charging_station: false})
+        .andWhere({alive_status: true})
         .select('*');
     return result;
 }
@@ -107,4 +98,24 @@ async function getBySecret(secret){
     return result;
 }
 
-module.exports={updateSpotStatus, getSpotsByLotId, getUnoccupiedByLotId, getById, getBySecret, getUnoccupiedByLotId, getUnoccupiedElectricByLotId, getUnoccupiedAndNotElectricByLotId};
+
+/**
+ * batch mark alive status for spots
+ * @param spots
+ * @returns {Promise<{spot_status: string}>}
+ */
+async function batchMarkAliveStatus(spots){
+    try {
+        await spots.map(async (spot) => {
+            const update_body = pick(spot, ['alive_status']);
+            await db('spots')
+                .update(update_body)
+                .where({secret: spot.secret});
+        });
+        return {spot_status:'success'};
+    } catch (err) {
+        return {spot_status:'failed'};
+    }
+}
+
+module.exports={updateSpotStatus, getSpotsByLotId, getUnoccupiedByLotId, getById, getBySecret, getUnoccupiedByLotId, getUnoccupiedElectricByLotId, getUnoccupiedAndNotElectricByLotId, batchMarkAliveStatus};

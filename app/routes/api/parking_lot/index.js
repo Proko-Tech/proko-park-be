@@ -12,12 +12,14 @@ const mailer = require('../../../modules/mailer');
 const stripePayment = require('../../../../services/stripe/payment');
 const stripeCustomer = require('../../../../services/stripe/customers');
 
-router.get('/:hash', async function(req, res){
+router.post('/:hash', async function(req, res){
     const hash = req.params.hash;
+    const spots = req.body;
     try {
         const result = await lotsModel.getLotAndSpotsByHash(hash);
         const {lot_status} = await lotsModel.markLotAliveStatusByIdAndHash(result);
-        const isGetAndUpdateSuccess = result && lot_status === 'success';
+        const {spot_status} = await spotsModel.batchMarkAliveStatus(spots);
+        const isGetAndUpdateSuccess = result && lot_status === 'success' && spot_status === 'success';
         if (isGetAndUpdateSuccess) {
             res.status(200)
                 .json({status: 'success', parking_lot_info: result});
