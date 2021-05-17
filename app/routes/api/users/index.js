@@ -193,7 +193,7 @@ router.get('/:id', async function(req, res){
                         reserved_at: currentArrivedTasks[0].reserved_at,
                         arrived_at: currentArrivedTasks[0].arrived_at,
                         parked_at: currentArrivedTasks[0].parked_at,
-                        reservation_id: currentReservation[0].id,
+                        reservation_id: currentArrivedTasks[0].id,
                     };
                 }
                 if (currentParkedTasks.length > 0) {
@@ -206,7 +206,7 @@ router.get('/:id', async function(req, res){
                         reserved_at: currentParkedTasks[0].reserved_at,
                         arrived_at: currentParkedTasks[0].arrived_at,
                         parked_at: currentParkedTasks[0].parked_at,
-                        reservation_id: currentReservation[0].id,
+                        reservation_id: currentParkedTasks[0].id,
                     };
                 }
             }
