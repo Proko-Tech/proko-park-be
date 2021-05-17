@@ -12,27 +12,6 @@ const mailer = require('../../../modules/mailer');
 const stripePayment = require('../../../../services/stripe/payment');
 const stripeCustomer = require('../../../../services/stripe/customers');
 
-router.post('/:hash', async function(req, res){
-    const hash = req.params.hash;
-    const spots = req.body;
-    try {
-        const result = await lotsModel.getLotAndSpotsByHash(hash);
-        const {lot_status} = await lotsModel.markLotAliveStatusByIdAndHash(result);
-        const {spot_status} = await spotsModel.batchMarkAliveStatus(spots);
-        const isGetAndUpdateSuccess = result && lot_status === 'success' && spot_status === 'success';
-        if (isGetAndUpdateSuccess) {
-            res.status(200)
-                .json({status: 'success', parking_lot_info: result});
-        } else {
-            res.status(404)
-                .json({status:'failed', data: 'Unable to find parking lot information'});
-        }
-    } catch (err) {
-        res.status(500)
-            .json({err, status:'failed', data: 'Unable to make request to server'});
-    }
-});
-
 router.put('/spot', async function(req, res){
     const lotInfo = req.lotInfo;
     const {spotInfo} = req.body;
@@ -106,7 +85,7 @@ router.put('/spot', async function(req, res){
 
 router.post('/scan', async function(req, res){
     const lotInfo = req.lotInfo;
-    const {email} = req.body;
+    const {email} = req.body;;
     try {
         const userInfo = await usersModel.getByEmail(email);
         if (userInfo.length === 0){
@@ -142,6 +121,27 @@ router.post('/scan', async function(req, res){
                 .json({status:'failed', data: 'Reservation not found in system'});
         }
     } catch (err){
+        res.status(500)
+            .json({err, status:'failed', data: 'Unable to make request to server'});
+    }
+});
+
+router.post('/:hash', async function(req, res){
+    const hash = req.params.hash;
+    const spots = req.body;
+    try {
+        const result = await lotsModel.getLotAndSpotsByHash(hash);
+        const {lot_status} = await lotsModel.markLotAliveStatusByIdAndHash(result);
+        const {spot_status} = await spotsModel.batchMarkAliveStatus(spots);
+        const isGetAndUpdateSuccess = result && lot_status === 'success' && spot_status === 'success';
+        if (isGetAndUpdateSuccess) {
+            res.status(200)
+                .json({status: 'success', parking_lot_info: result});
+        } else {
+            res.status(404)
+                .json({status:'failed', data: 'Unable to find parking lot information'});
+        }
+    } catch (err) {
         res.status(500)
             .json({err, status:'failed', data: 'Unable to make request to server'});
     }
