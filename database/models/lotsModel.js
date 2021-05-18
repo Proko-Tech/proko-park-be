@@ -26,7 +26,7 @@ async function markLotAliveStatusByIdAndHash(lot_info){
         await db('lots')
             .where({hash: lot_info.hash})
             .andWhere({id: lot_info.id})
-            .update({alive_status: true});
+            .update({alive_status: true, updated_at: new Date()});
         return {lot_status:'success'};
     } catch (err) {
         return {lot_status:'failed'};
