@@ -283,7 +283,7 @@ async function updateById(id, reservation_info){
  * @param vehicle_id
  * @returns {Promise<{reservation_status: string}>}
  */
-async function insertAndHandleNonElectricReserve(lot_id, user_id, vehicle_id, card_id){
+async function insertAndHandleNonElectricReserve(lot_id, user_id, vehicle_id, card_id, reserved_at){
     const result = {reservation_status: 'failed'};
     await db.transaction(async (transaction) => {
         try {
@@ -306,7 +306,7 @@ async function insertAndHandleNonElectricReserve(lot_id, user_id, vehicle_id, ca
                 user_id, lot_id, vehicle_id, card_id,
                 license_plate: vehicle[0].license_plate,
                 spot_hash: spotInfo.secret,
-                reserved_at: new Date(),
+                reserved_at,
                 status: 'RESERVED',
             };
             await db('reservations')
