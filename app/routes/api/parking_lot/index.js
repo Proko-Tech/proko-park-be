@@ -85,7 +85,7 @@ router.put('/spot', async function(req, res){
 
 router.post('/scan', async function(req, res){
     const lotInfo = req.lotInfo;
-    const {email} = req.body;;
+    const {email} = req.body;
     try {
         const userInfo = await usersModel.getByEmail(email);
         if (userInfo.length === 0){
@@ -106,7 +106,7 @@ router.post('/scan', async function(req, res){
             const isSpotValid = isSpotExist && isSpotReserved;
             if (isSpotValid){
                 const reservation_info = {
-                    arrived_at: new Date(),
+                    arrived_at: req.body.arrived_at,
                     status: 'ARRIVED',
                 };
                 const {reservation_status} = await reservationsModel.updateById(reservationInfo[newestIndex].id, reservation_info);
