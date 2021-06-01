@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const {DateTime} = require('luxon');
 
 const lotsModel = require('../../../../database/models/lotsModel');
 const reservationsModel = require('../../../../database/models/reservationModel');
@@ -25,10 +26,10 @@ router.put('/spot', async function(req, res){
         let spot_update_status = 'failed';
         const isReservedToArrived = previous_spot.length > 0 && previous_arrived_reservation.length>0 && spotInfo.spot_status==='OCCUPIED' && previous_spot[0].spot_status === 'RESERVED' && previous_arrived_reservation[0].status === 'ARRIVED';
         const isArrivedToExited = previous_spot.length > 0 && previous_parked_reservation.length>0 && spotInfo.spot_status==='UNOCCUPIED' && previous_spot[0].spot_status === 'OCCUPIED' && previous_parked_reservation[0].status === 'PARKED';
-        const date = new Date();
+        const date = DateTime.local().toUTC();
         if (isReservedToArrived){
             const reservation_info = {
-                parked_at: date,
+                parked_at: date.toSQL({includeOffset: false}),
                 status: 'PARKED',
             };
             const status = await reservationsModel.updateById(previous_arrived_reservation[0].id, reservation_info);
@@ -36,7 +37,7 @@ router.put('/spot', async function(req, res){
             spot_update_status = await spotsModel.updateSpotStatus(spotInfo);
         } else if (isArrivedToExited){
             const reservation_info = {
-                exited_at: date,
+                exited_at: date.toSQL({includeOffset: false}),
                 status: 'FULFILLED',
             };
             const status = await reservationsModel.updateById(previous_parked_reservation[0].id, reservation_info);
@@ -85,7 +86,7 @@ router.put('/spot', async function(req, res){
 
 router.post('/scan', async function(req, res){
     const lotInfo = req.lotInfo;
-    const {email} = req.body;;
+    const {email} = req.body; ;
     try {
         const userInfo = await usersModel.getByEmail(email);
         if (userInfo.length === 0){
@@ -104,9 +105,10 @@ router.post('/scan', async function(req, res){
             const isSpotExist = spotInfo.length===1;
             const isSpotReserved = spotInfo[0].spot_status === 'RESERVED';
             const isSpotValid = isSpotExist && isSpotReserved;
+            const date = DateTime.local().toUTC();
             if (isSpotValid){
                 const reservation_info = {
-                    arrived_at: new Date(),
+                    arrived_at: date.toSQL({includeOffset: false}),
                     status: 'ARRIVED',
                 };
                 const {reservation_status} = await reservationsModel.updateById(reservationInfo[newestIndex].id, reservation_info);
