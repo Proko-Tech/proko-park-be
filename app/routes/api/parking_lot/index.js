@@ -86,7 +86,7 @@ router.put('/spot', async function(req, res){
 
 router.post('/scan', async function(req, res){
     const lotInfo = req.lotInfo;
-    const {email} = req.body; ;
+    const {email} = req.body;
     try {
         const userInfo = await usersModel.getByEmail(email);
         if (userInfo.length === 0){
