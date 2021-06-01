@@ -34,7 +34,7 @@ router.post('/', async function(req, res){
         const isValidReservation = !isUserCurrentlyHasTask && !isLotFull && isUserOwnVehicle && isUserValid;
 
         if (isValidReservation){
-            const {reservation_status} = await reservationModel.insertAndHandleNonElectricReserve(lot_id, userInfo.id, vehicle_id, card_id, req.body.reserved_at);
+            const {reservation_status} = await reservationModel.insertAndHandleNonElectricReserve(lot_id, userInfo.id, vehicle_id, card_id);
             if (reservation_status === 'failed'){
                 res.status(401)
                     .json({status: 'failed', data: 'Unauthorized reservation'});
