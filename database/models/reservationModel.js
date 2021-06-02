@@ -2,6 +2,7 @@ const db = require('../dbConfig');
 const spotModel = require('./spotsModel');
 const pick = require('../../utils/pick');
 const removeDuplicates = require('../../utils/removeDuplicates');
+const {DateTime} = require('luxon');
 
 /**
  * get reservation by id
@@ -285,8 +286,10 @@ async function updateById(id, reservation_info){
  */
 async function insertAndHandleNonElectricReserve(lot_id, user_id, vehicle_id, card_id){
     const result = {reservation_status: 'failed'};
+
     await db.transaction(async (transaction) => {
         try {
+            const reserved_at = DateTime.local().toUTC().toSQL({includeOffset:false});
             const emptySpots = await spotModel.getUnoccupiedAndNotElectricByLotId(lot_id);
             if (emptySpots.length === 0) await transaction.rollback();
             const props = ['secret', 'lot_id'];
@@ -306,7 +309,7 @@ async function insertAndHandleNonElectricReserve(lot_id, user_id, vehicle_id, ca
                 user_id, lot_id, vehicle_id, card_id,
                 license_plate: vehicle[0].license_plate,
                 spot_hash: spotInfo.secret,
-                reserved_at: new Date(),
+                reserved_at,
                 status: 'RESERVED',
             };
             await db('reservations')

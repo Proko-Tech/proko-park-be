@@ -1,4 +1,5 @@
 const db = require('../dbConfig');
+const {DateTime} = require('luxon');
 
 const spotsModel = require('./spotsModel');
 
@@ -23,10 +24,11 @@ async function getByIdAndHash(id, hash){
  */
 async function markLotAliveStatusByIdAndHash(lot_info){
     try {
+        const date = DateTime.local().toUTC().toSQL({includeOffset: false});
         await db('lots')
             .where({hash: lot_info.hash})
             .andWhere({id: lot_info.id})
-            .update({alive_status: true, updated_at: new Date()});
+            .update({alive_status: true, updated_at: date});
         return {lot_status:'success'};
     } catch (err) {
         return {lot_status:'failed'};
