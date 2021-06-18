@@ -8,8 +8,6 @@ const helmet = require('helmet');
 const cors = require('cors');
 const logger = require('morgan');
 
-const limiter = require('./middlewares/rate_limiters/config');
-
 
 const apiRouter = require('./routes/api');
 const indexRouter = require('./routes/index');
@@ -20,7 +18,6 @@ server.use(express.urlencoded({extended: true}));
 
 server.use(express());
 server.use(express.json());
-server.use(limiter.appLimiter);
 
 server.use(logger('dev'));
 server.use(helmet());
