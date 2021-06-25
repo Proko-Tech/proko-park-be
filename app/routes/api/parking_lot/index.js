@@ -134,7 +134,7 @@ router.post('/:hash', async function(req, res){
     try {
         const result = await lotsModel.getLotAndSpotsByHash(hash);
         const {lot_status} = await lotsModel.markLotAliveStatusByIdAndHash(result);
-        const {spot_status} = await spotsModel.batchMarkAliveStatus(spots);
+        const {spot_status} = await spotsModel.batchUpdate(spots);
         const isGetAndUpdateSuccess = result && lot_status === 'success' && spot_status === 'success';
         if (isGetAndUpdateSuccess) {
             res.status(200)

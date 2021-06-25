@@ -104,10 +104,10 @@ async function getBySecret(secret){
  * @param spots
  * @returns {Promise<{spot_status: string}>}
  */
-async function batchMarkAliveStatus(spots){
+async function batchUpdate(spots){
     try {
         await spots.map(async (spot) => {
-            const update_body = pick(spot, ['alive_status']);
+            const update_body = pick(spot, ['alive_status', 'firmware_version']);
             await db('spots')
                 .update(update_body)
                 .where({secret: spot.secret});
@@ -118,4 +118,4 @@ async function batchMarkAliveStatus(spots){
     }
 }
 
-module.exports={updateSpotStatus, getSpotsByLotId, getUnoccupiedByLotId, getById, getBySecret, getUnoccupiedByLotId, getUnoccupiedElectricByLotId, getUnoccupiedAndNotElectricByLotId, batchMarkAliveStatus};
+module.exports={updateSpotStatus, getSpotsByLotId, getUnoccupiedByLotId, getById, getBySecret, getUnoccupiedByLotId, getUnoccupiedElectricByLotId, getUnoccupiedAndNotElectricByLotId, batchUpdate};
