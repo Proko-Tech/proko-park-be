@@ -42,11 +42,13 @@ router.post('/', async function(req, res){
             const vehicles = await vehiclesModel.getById(vehicle_id);
             const lots = await lotsModel.getById(lot_id);
             const reservation = await reservationModel.getReservedByUserIdAndLotId(userInfo.id, lot_id);
+            const spots = await spotsModel.getBySecret(reservation[0].spot_hash);
             const reservation_info = {
                 vehicle: vehicles[0],
                 parking_lot: lots[0],
                 status: 'RESERVED',
                 reservation_id: reservation[0].id,
+                spot: spots[0],
             };
             await mailer.sendReservationConfirmation(lots[0], vehicles[0], cardInformation.card, user[0].email, user[0].first_name, async function(err, resData) {
                 if (err) {
