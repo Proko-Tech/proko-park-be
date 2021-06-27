@@ -88,7 +88,7 @@ router.put('/cancel', async function(req, res){
         const reservation = await reservationModel.getById(reservation_id);
         if (reservation[0].user_id !== id)
             return res.status(401).json({status: 'failed', data: 'Unauthorized reservation'});
-        const dateTwoHoursAgo = DateTime.local().plus({hours: 2}).toUTC();
+        const dateTwoHoursAgo = DateTime.local().minus({hours: 2}).toUTC();
         const canceled_reservations = await reservationModel.getCanceledAfterDateAndUid(id, dateTwoHoursAgo.toSQL({includeOffset: false}));
         const isCancelValid = canceled_reservations.length < 3;
         if (!isCancelValid){
