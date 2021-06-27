@@ -71,7 +71,7 @@ router.post('/', async function(req, res){
 router.get('/can_cancel', async function(req, res){
     const {id} = req.userInfo;
     try {
-        const dateTwoHoursAgo = DateTime.local().plus({hours: 2}).toUTC();
+        const dateTwoHoursAgo = DateTime.local().minus({hours: 2}).toUTC();
         const canceled_reservations = await reservationModel.getCanceledAfterDateAndUid(id, dateTwoHoursAgo.toSQL({includeOffset: false}));
         const isCancelValid = canceled_reservations.length < 3;
         return res.status(200).json({status: 'success', isCancelValid});
@@ -96,12 +96,12 @@ router.put('/cancel', async function(req, res){
             const amount = 400;
             const description = 'Cancellation Fee 3 times';
             const charge = await stripePayment.authorizeByCustomerAndSource(amount, description, userInfo[0].stripe_customer_id, reservation[0].card_id);
-            const result = await reservationModel.updateCancelById(reservation_id);
+            const result = await reservationModel.updateCancelById(reservation_id, charge.id);
             if (result.reservation_status!== 'success')
                 return res.status(500).json({status: 'failed', data: 'Cannot cancel due to internal server error'});
             return res.status(200).json({status: 'success'});
         }
-        const result = await reservationModel.updateCancelById(reservation_id);
+        const result = await reservationModel.updateCancelById(reservation_id, null);
         if (result.reservation_status!== 'success')
             return res.status(500).json({status: 'failed', data: 'Cannot cancel due to internal server error'});
         return res.status(200).json({status: 'success'});

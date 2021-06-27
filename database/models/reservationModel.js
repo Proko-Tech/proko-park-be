@@ -46,14 +46,15 @@ async function getWithLotByUserId(user_id){
 /**
  * update reservation to cancel and spots by id
  * @param id
+ * @param stripe_chard_id
  * @returns {Promise<{reservation_status: string}>}
  */
-async function updateCancelById(id){
+async function updateCancelById(id, stripe_charge_id){
     const result = {reservation_status: 'failed'};
     await db.transaction(async (transaction) => {
         try {
             await db('reservations')
-                .update({status: 'CANCELED'})
+                .update({status: 'CANCELED', stripe_charge_id})
                 .where({id})
                 .transacting(transaction);
             const reservation = await db('reservations')
