@@ -189,7 +189,7 @@ router.get('/:id', async function(req, res){
                 if (currentArrivedTasks.length > 0) {
                     const vehicles = await vehicleModel.getById(currentArrivedTasks[0].vehicle_id);
                     const lots = await lotModel.getById(currentArrivedTasks[0].lot_id);
-                    const spots = await spotsModel.getBySecret(currentReservation[0].spot_hash);
+                    const spots = await spotsModel.getBySecret(currentArrivedTasks[0].spot_hash);
                     reservation_info = {
                         vehicle: vehicles[0],
                         parking_lot: lots[0],
@@ -204,7 +204,7 @@ router.get('/:id', async function(req, res){
                 if (currentParkedTasks.length > 0) {
                     const vehicles = await vehicleModel.getById(currentParkedTasks[0].vehicle_id);
                     const lots = await lotModel.getById(currentParkedTasks[0].lot_id);
-                    const spots = await spotsModel.getBySecret(currentReservation[0].spot_hash);
+                    const spots = await spotsModel.getBySecret(currentParkedTasks[0].spot_hash);
                     reservation_info = {
                         vehicle: vehicles[0],
                         parking_lot: lots[0],
