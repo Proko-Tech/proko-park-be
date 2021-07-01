@@ -101,7 +101,7 @@ router.put('/cancel', async function(req, res){
                 return res.status(500).json({status: 'failed', data: 'Cannot cancel due to internal server error'});
             return res.status(200).json({status: 'success'});
         }
-        const result = await reservationModel.updateCancelById(reservation_id, null);
+        const result = await reservationModel.updateCancelById(reservation_id, {total_price: 0, status: 'CANCELED'});
         if (result.reservation_status!== 'success')
             return res.status(500).json({status: 'failed', data: 'Cannot cancel due to internal server error'});
         return res.status(200).json({status: 'success'});
