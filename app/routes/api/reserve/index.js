@@ -96,7 +96,7 @@ router.put('/cancel', async function(req, res){
             const amount = 400;
             const description = 'Cancellation Fee 3 times';
             const charge = await stripePayment.authorizeByCustomerAndSource(amount, description, userInfo[0].stripe_customer_id, reservation[0].card_id);
-            const result = await reservationModel.updateCancelById(reservation_id, charge.id);
+            const result = await reservationModel.updateCancelById(reservation_id, {stripe_charge_id: charge.id, total_price: amount/100, status: 'CANCELED'});
             if (result.reservation_status!== 'success')
                 return res.status(500).json({status: 'failed', data: 'Cannot cancel due to internal server error'});
             return res.status(200).json({status: 'success'});
