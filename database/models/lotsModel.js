@@ -91,6 +91,40 @@ async function getAndUnoccupiedElectricSpotNumsById(id){
 }
 
 /**
+ * get reservable spot numbers by id
+ * @param id
+ * @returns {Promise<null|{available_spots: *}>}
+ */
+async function getAndReservableSpotNumsById(id){
+    const lot = await db('lots')
+        .where({id})
+        .select('*');
+    if (lot.length>0) {
+        const spots = await spotsModel.getUnoccupiedReservableByLotId(lot[0].id);
+        return spots.length;
+    } else {
+        return null;
+    }
+}
+
+/**
+ * get non-reservable spot numbers by id
+ * @param id
+ * @returns {Promise<null|{available_spots: *}>}
+ */
+async function getAndNonReservableSpotNumsById(id){
+    const lot = await db('lots')
+        .where({id})
+        .select('*');
+    if (lot.length>0) {
+        const spots = await spotsModel.getUnoccupiedNonReservableByLotId(lot[0].id);
+        return spots.length;
+    } else {
+        return null;
+    }
+}
+
+/**
  * get lot info by id
  * @param id
  * @returns {Promise<void>}
@@ -117,14 +151,17 @@ async function getClosestByLatLong(lat, long){
     const result = await Promise.all(lots.map(async (lot)=> {
         const spots = await spotsModel.getUnoccupiedByLotId(lot.id);
         const electric_spots = await spotsModel.getUnoccupiedElectricByLotId(lot.id);
+        const reservable_spots = await spotsModel.getUnoccupiedReservableByLotId(lot.id);
         const lot_info = {
             ...lot,
             available_spots: spots.length,
             available_electric_spots: electric_spots.length,
+            available_reservable_spots: reservable_spots.length,
+            available_non_reservable_spots: spots.length - reservable_spots.length,
         };
         return lot_info;
     }));
     return result;
 }
 
-module.exports={getByIdAndHash, markLotAliveStatusByIdAndHash, getLotAndSpotsByHash, getAndUnoccupiedSpotNumsById, getAndUnoccupiedElectricSpotNumsById, getById, getClosestByLatLong};
+module.exports={getByIdAndHash, markLotAliveStatusByIdAndHash, getLotAndSpotsByHash, getAndUnoccupiedSpotNumsById, getAndUnoccupiedElectricSpotNumsById, getAndReservableSpotNumsById, getAndNonReservableSpotNumsById, getById, getClosestByLatLong};

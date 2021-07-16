@@ -8,7 +8,9 @@ router.get('/:id', async function(req, res){
     const {id} = req.params;
     try {
         const result = await lotsModel.getAndUnoccupiedSpotNumsById(id);
-        result.electric_spots = await lotsModel.getAndUnoccupiedElectricSpotNumsById(id);
+        result.available_electric_spots = await lotsModel.getAndUnoccupiedElectricSpotNumsById(id);
+        result.available_reservable_spots = await lotsModel.getAndReservableSpotNumsById(id);
+        result.available_non_reservable_spots = await lotsModel.getAndNonReservableSpotNumsById(id);
         if (result) {
             res.status(200)
                 .json({status: 'success', parking_lot_info: result});

@@ -18,7 +18,7 @@ router.post('/', async function(req, res){
     const userInfo = req.userInfo;
     const {lot_id, vehicle_id, card_id} = req.body;
     try {
-        const unoccupiedSpots = await spotsModel.getUnoccupiedAndNotElectricByLotId(lot_id);
+        const unoccupiedSpots = await spotsModel.getUnoccupiedNotElectricAndReservableByLotId(lot_id);
         const vehicleOwnerRecords = await vehicleOwnershipModel.getByUserIdAndVehicleId(userInfo.id, vehicle_id);
         const userCurrentReservedTasks = await reservationModel.getReservedByUserIdAndLotId(userInfo.id, lot_id);
         const userCurrentArrivedTasks = await reservationModel.getArrivedByUserIdAndLotId(userInfo.id, lot_id);

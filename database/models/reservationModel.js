@@ -103,10 +103,13 @@ async function getDistinctLotsByUserId(user_id){
     const result = await Promise.all(rows.map(async (row)=>{
         const spots = await spotModel.getUnoccupiedByLotId(row.lot_id);
         const electric_spots = await spotModel.getUnoccupiedElectricByLotId(row.lot_id);
+        const reservable_spots = await spotModel.getUnoccupiedReservableByLotId(row.lot_id);
         const lot_info = {
             ...row,
             available_spots: spots.length,
             available_electric_spots: electric_spots.length,
+            available_reservable_spots: reservable_spots.length,
+            available_non_reservable_spots: spots.length - reservable_spots.length,
         };
         return lot_info;
     }));
@@ -291,7 +294,7 @@ async function insertAndHandleNonElectricReserve(lot_id, user_id, vehicle_id, ca
     await db.transaction(async (transaction) => {
         try {
             const reserved_at = DateTime.local().toUTC().toSQL({includeOffset:false});
-            const emptySpots = await spotModel.getUnoccupiedAndNotElectricByLotId(lot_id);
+            const emptySpots = await spotModel.getUnoccupiedNotElectricAndReservableByLotId(lot_id);
             if (emptySpots.length === 0) await transaction.rollback();
             const props = ['secret', 'lot_id'];
             const spotInfo = {

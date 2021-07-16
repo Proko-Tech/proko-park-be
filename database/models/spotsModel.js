@@ -60,15 +60,46 @@ async function getUnoccupiedElectricByLotId(lot_id){
 }
 
 /**
+ * Getting unoccupied and reservable spots by Lot id
+ * @param lot_id
+ * @returns {Promise<void>}
+ */
+async function getUnoccupiedReservableByLotId(lot_id){
+    const result = await db('spots')
+        .where({lot_id})
+        .andWhere({spot_status: 'UNOCCUPIED'})
+        .andWhere({is_reservable: true})
+        .andWhere({alive_status: true})
+        .select('*');
+    return result;
+}
+
+/**
+ * Getting unoccupied and non-reservable spots by Lot id
+ * @param lot_id
+ * @returns {Promise<void>}
+ */
+async function getUnoccupiedNonReservableByLotId(lot_id){
+    const result = await db('spots')
+        .where({lot_id})
+        .andWhere({spot_status: 'UNOCCUPIED'})
+        .andWhere({is_reservable: false})
+        .andWhere({alive_status: true})
+        .select('*');
+    return result;
+}
+
+/**
  * Getting unoccupied spots by Lot id
  * @param lot_id
  * @returns {Promise<void>}
  */
-async function getUnoccupiedAndNotElectricByLotId(lot_id){
+async function getUnoccupiedNotElectricAndReservableByLotId(lot_id){
     const result = await db('spots')
         .where({lot_id})
         .andWhere({spot_status: 'UNOCCUPIED'})
         .andWhere({is_charging_station: false})
+        .andWhere({is_reservable: true})
         .andWhere({alive_status: true})
         .select('*');
     return result;
@@ -118,4 +149,4 @@ async function batchUpdate(spots){
     }
 }
 
-module.exports={updateSpotStatus, getSpotsByLotId, getUnoccupiedByLotId, getById, getBySecret, getUnoccupiedByLotId, getUnoccupiedElectricByLotId, getUnoccupiedAndNotElectricByLotId, batchUpdate};
+module.exports={updateSpotStatus, getSpotsByLotId, getUnoccupiedByLotId, getById, getBySecret, getUnoccupiedByLotId, getUnoccupiedElectricByLotId, getUnoccupiedNotElectricAndReservableByLotId, batchUpdate, getUnoccupiedReservableByLotId, getUnoccupiedNonReservableByLotId};
