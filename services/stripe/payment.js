@@ -7,12 +7,12 @@ const stripe = require('./config');
  * @param stripeCustomer
  * @returns {Promise<Stripe.Charge & {headers: {[p: string]: string}; lastResponse: {requestId: string; statusCode: number; apiVersion?: string; idempotencyKey?: string; stripeAccount?: string}}>}
  */
-async function authorizeByCustomer(amount, description, stripeCustomer){
+async function authorizeByCustomer(amount, description, stripeCustomerId){
     const charge = await stripe.charges.create({ // Return a charge object
         amount: amount, // Unit: cents
         currency: 'usd',
         capture: false,
-        customer: stripeCustomer.id,
+        customer: stripeCustomerId,
         description: description,
     });
     return charge;

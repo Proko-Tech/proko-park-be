@@ -330,4 +330,49 @@ async function insertAndHandleNonElectricReserve(lot_id, user_id, vehicle_id, ca
     return result;
 }
 
-module.exports={getById, getWithLotByUserId, getCanceledAfterDateAndUid, updateCancelById, getDistinctLotsByUserId, getByUserIdAndLotId, getReservedBySpotHashAndLotId, getWithVehicleAndLotByUserId, getReservedByUserId, getArrivedByUserId, getParkedByUserId, getArrivedByUserIdAndLotId, getParkedByUserIdAndLotId, getParkedBySpotHashAndLotId, getReservedByUserIdAndLotId, getArrivedBySpotHashAndLotId, updateById, insertAndHandleNonElectricReserve};
+/**
+ * insert and handle first come first serve non-electrical reserve
+ * @param lot_id
+ * @param user_id
+ * @returns {Promise<{reservation_status: string}>}
+ */
+async function insertAndHandleFCFSNonElectricArrive(lot_id, user_id){
+    const result = {reservation_status: 'failed'};
+    await db.transaction(async (transaction) => {
+        try {
+            const reserved_at = DateTime.local().toUTC().toSQL({includeOffset: false});
+            const emptySpots = await spotModel.getUnoccupiedNotElectricAndNonReservableByLotId(lot_id);
+            if (emptySpots.length === 0) await transaction.rollback();
+            const props = ['secret', 'lot_id'];
+            const spotInfo = {
+                ...pick(emptySpots[Math.floor(Math.random() * Math.floor(emptySpots.length))], props),
+            };
+            await db('spots')
+                .where({lot_id})
+                .andWhere({secret: spotInfo.secret})
+                .update({spot_status: 'RESERVED'})
+                .transacting(transaction);
+            const reservationInfo = {
+                user_id, lot_id,
+                license_plate: 'First Come First Serve',
+                vehicle_id: -1,
+                spot_hash: spotInfo.secret,
+                reserved_at,
+                arrived_at: reserved_at,
+                status: 'ARRIVED',
+            };
+            await db('reservations')
+                .transacting(transaction)
+                .insert(reservationInfo);
+            result.reservation_status = 'success';
+            await transaction.commit();
+        } catch (err) {
+            console.log(err);
+            result.reservation_status = 'failed';
+            await transaction.rollback();
+        }
+    });
+    return result;
+}
+
+module.exports={getById, getWithLotByUserId, getCanceledAfterDateAndUid, updateCancelById, getDistinctLotsByUserId, getByUserIdAndLotId, getReservedBySpotHashAndLotId, getWithVehicleAndLotByUserId, getReservedByUserId, getArrivedByUserId, getParkedByUserId, getArrivedByUserIdAndLotId, getParkedByUserIdAndLotId, getParkedBySpotHashAndLotId, getReservedByUserIdAndLotId, getArrivedBySpotHashAndLotId, updateById, insertAndHandleNonElectricReserve, insertAndHandleFCFSNonElectricArrive};
