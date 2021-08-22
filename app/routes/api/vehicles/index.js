@@ -8,6 +8,10 @@ const vehicleOwnershipModel = require('../../../../database/models/vehicleOwners
 router.post('/', async function(req, res){
     const {id} = req.userInfo;
     try {
+        const existingVehicle = await vehiclesModel.getByIssuedStateAndLicensePlate(req.body.license_issued_state, req.body.license_plate);
+        if (existingVehicle.length > 0){
+            return res.status(401).json({status: 'failed', message: 'Uh oh, this vehicle is already registered in our system, please ask the primary owner to add you as a co-owner.'});
+        }
         await vehiclesModel.insertPrimaryOwner(req.body, id);
         return res.status(200).json({status: 'success', message: 'Successfully inserted vehicle'});
     } catch (err){
