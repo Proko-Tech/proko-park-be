@@ -110,4 +110,36 @@ const sendReceipt = (lot, vehicle, card, receiverEmail, first_name, amount, time
     });
 };
 
-module.exports = {sendEmail, sendReservationConfirmation, sendReceipt};
+const sendCoownVehicleInvitation = (user, inviter, vehicle) => {
+    const d = new Date();
+    // setup email data with unicode symbols
+    ejs.renderFile(path.join(__dirname, '..','views/CoownVehicleInvite.ejs'), {user, inviter, vehicle}, function(err, data) {
+        if (err) {
+            console.log(err);
+        } else {
+            const mailOptions = {
+                from: process.env.EMAILUSER,
+                to: user.email,
+                subject: "Proko Park: You are invited to co-own a vehicle",
+                html: data,
+            };
+            transporter.sendMail(mailOptions, function(error, info) {
+                if (error) {
+                    console.log(error);
+                    callback({
+                        status: false,
+                        message: "EMAIL SEND FAIL",
+                    });
+                } else {
+                    // console.log('Email sent: ' + info.response);
+                    callback({
+                        status: true,
+                        message: "EMAIL SENT",
+                    });
+                }
+            });
+        }
+    });
+};
+
+module.exports = {sendEmail, sendReservationConfirmation, sendReceipt, sendCoownVehicleInvitation};

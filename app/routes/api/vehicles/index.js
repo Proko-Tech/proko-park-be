@@ -5,6 +5,8 @@ const usersModel = require('../../../../database/models/usersModel');
 const vehiclesModel = require('../../../../database/models/vehiclesModel');
 const vehicleOwnershipModel = require('../../../../database/models/vehicleOwnershipModel');
 
+const mailer = require('../../../modules/mailer');
+
 router.post('/', async function(req, res){
     const {id} = req.userInfo;
     try {
@@ -93,8 +95,14 @@ router.post('/ownership', async function(req, res){
             user_id: inviteeInfo[0].id,
             vehicle_id, is_primary_owner: 0, status: 'INVITED',
         };
-
+        const userInfo = await usersModel.getById(id);
+        const vehicleInfo = await vehiclesModel.getById(vehicle_id);
         await vehicleOwnershipModel.insert(record);
+        await mailer.sendCoownVehicleInvitation(userInfo, inviteeInfo, vehicleInfo, async function(err, resData) {
+            if (err) {
+                console.log(err);
+            }
+        });
         return res.status(200).json({status: 'success', message: 'Successfully inserted ownership record'});
     } catch (err){
         return res.status(500)
