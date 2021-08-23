@@ -110,7 +110,7 @@ const sendReceipt = (lot, vehicle, card, receiverEmail, first_name, amount, time
     });
 };
 
-const sendCoownVehicleInvitation = (user, inviter, vehicle) => {
+const sendCoownVehicleInvitation = (user, inviter, vehicle, callback) => {
     const d = new Date();
     // setup email data with unicode symbols
     ejs.renderFile(path.join(__dirname, '..','views/CoownVehicleInvite.ejs'), {user, inviter, vehicle}, function(err, data) {
@@ -119,7 +119,7 @@ const sendCoownVehicleInvitation = (user, inviter, vehicle) => {
         } else {
             const mailOptions = {
                 from: process.env.EMAILUSER,
-                to: user.email,
+                to: inviter.email,
                 subject: "Proko Park: You are invited to co-own a vehicle",
                 html: data,
             };

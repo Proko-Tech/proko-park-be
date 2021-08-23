@@ -100,7 +100,7 @@ router.post('/ownership', async function(req, res){
 
         const userInfo = await usersModel.getById(id);
         const vehicleInfo = await vehiclesModel.getById(vehicle_id);
-        await mailer.sendCoownVehicleInvitation(userInfo, inviteeInfo, vehicleInfo, async function(err, resData) {
+        await mailer.sendCoownVehicleInvitation(userInfo[0], inviteeInfo[0], vehicleInfo[0], async function(err, resData) {
             if (err) {
                 console.log(err);
             }
