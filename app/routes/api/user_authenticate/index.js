@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt-nodejs');
+const appleSignin = require('apple-signin-auth');
 
 const usersModel = require('../../../../database/models/usersModel');
 const tokenUtil = require('../../../auth/users/tokenUtil');
@@ -90,6 +91,81 @@ router.post('/social', async function(req, res){
         }
         // }
     } catch (err){
+        return res.status(500)
+            .json({err, message: 'Unable to get user from database'})
+    }
+});
+
+router.post('/sign-in-with-apple', async function(req, res, next) {
+    try {
+        const {body} = req;
+        const {
+            email,
+            first_name,
+            last_name,
+            identity_token,
+            apple_user,
+            login_in_type,
+        } = body.userData;
+
+        try {
+            const clientId = process.env.APPLE_APP_ID;
+            // verify token (will throw error if failure)
+            const {sub} = await
+            appleSignin.verifyIdToken(identity_token, {
+                audience: clientId,
+                ignoreExpiration: true, // ignore token expiry (never expires)
+            });
+            if (sub !== apple_user){
+                return res.status(404)
+                    .json({message: 'authentication failed'});
+            }
+
+            const result = await usersModel.getByAppleUser(apple_user);
+            const isUserExist = !(result.length === 0);
+
+            if (!isUserExist){
+                const stripe_profile = await stripeCustomer.create(first_name+' '+last_name, email);
+                const user = {
+                    email,
+                    first_name,
+                    last_name,
+                    password: bcrypt.hashSync(apple_user, null, null),
+                    verify_code: 'SOCIAL_SIGNUP',
+                    sign_up_type: login_in_type,
+                    is_verified: true,
+                    stripe_customer_id: stripe_profile.id,
+                    apple_user,
+                };
+                const {user_status} = await usersModel.insert(user);
+                const inserted_user = await usersModel.getByEmail(email);
+
+                const userInfo = {
+                    ...pick(inserted_user[0], ['id', 'email']),
+                };
+                const token = await tokenUtil.generateToken(userInfo);
+                return res.status(202)
+                    .json({status: 'success', data: token, type: 'SIGNUP'});
+            } else {
+                // const isPasswordMatch = bcrypt.compareSync(userData.password, result[0].password);
+                // if (!isPasswordMatch) return res.status(404).json({status: 'failed', message: 'Unauthorized action'});
+                // else {
+                const userInfo = {
+                    ...pick(result[0], ['id', 'email']),
+                };
+                const token = await tokenUtil.generateToken(userInfo);
+                return res.status(202)
+                    .json({status: 'success', data: token, type: 'LOGIN'});
+            }
+        } catch (e) {
+            return res.status(500)
+                .json({
+                    ack: 'error',
+                    message: 'failed to verify identityToken',
+                });
+        }
+
+    } catch (err) {
         return res.status(500)
             .json({err, message: 'Unable to get user from database'})
     }

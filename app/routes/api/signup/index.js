@@ -29,8 +29,8 @@ router.post('/', limiter.signUpLimiter, async function(req, res){
             user.stripe_customer_id = stripe_profile.id;
             const {user_status} = await userModel.insert(user);
             if (user_status === 'failed'){
-                res.status(404)
-                    .json({status: 'failed', message: 'Another account using this email was found'})
+                res.status(502)
+                    .json({status: 'failed', message: 'Signed up failed due to server error.'})
             }
             const result = await userModel.getByEmail(user.email);
             const userInfo = {

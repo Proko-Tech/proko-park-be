@@ -29,6 +29,18 @@ async function getById(id) {
 }
 
 /**
+ * get user by apple user id
+ * @param apple_user
+ * @returns {Promise<void>}
+ */
+async function getByAppleUser(apple_user){
+    const result = await db('users')
+        .where({apple_user})
+        .select('*');
+    return result;
+}
+
+/**
  * Gets user from db by email and signup type
  * @param email
  * @returns {Promise<void>}
@@ -86,4 +98,4 @@ async function updateById(id, modified_user){
     }
 }
 
-module.exports = {getById, getByEmailAndSignupType, updateById, getAllById, getByEmail, insert};
+module.exports = {getById, getByEmailAndSignupType, getByAppleUser, updateById, getAllById, getByEmail, insert};
