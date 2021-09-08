@@ -16,6 +16,7 @@ async function getByUserId(user_id){
             'vehicles.make',
             'vehicles.model',
             'vehicles.color',
+            'vehicles.license_issued_state',
             'vehicle_ownership.is_primary_owner',
             'vehicle_ownership.status',
         ]);
@@ -30,6 +31,20 @@ async function getByUserId(user_id){
 async function getById(id){
     const result = await db('vehicles')
         .where({id})
+        .select('*');
+    return result;
+}
+
+/**
+ * get vehicles by issued state and license plate
+ * @param license_issued_state
+ * @param license_plate
+ * @returns {Promise<void>}
+ */
+async function getByIssuedStateAndLicensePlate(license_issued_state, license_plate){
+    const result = await db('vehicles')
+        .where({license_issued_state})
+        .andWhere({license_plate})
         .select('*');
     return result;
 }
@@ -92,4 +107,4 @@ async function deleteByIdTransactOwnership(id){
     });
 }
 
-module.exports={getByUserId, getById, updateById, insertPrimaryOwner, deleteByIdTransactOwnership};
+module.exports={getByUserId, getById, getByIssuedStateAndLicensePlate, updateById, insertPrimaryOwner, deleteByIdTransactOwnership};

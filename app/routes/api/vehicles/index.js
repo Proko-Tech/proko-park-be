@@ -5,9 +5,15 @@ const usersModel = require('../../../../database/models/usersModel');
 const vehiclesModel = require('../../../../database/models/vehiclesModel');
 const vehicleOwnershipModel = require('../../../../database/models/vehicleOwnershipModel');
 
+const mailer = require('../../../modules/mailer');
+
 router.post('/', async function(req, res){
     const {id} = req.userInfo;
     try {
+        const existingVehicle = await vehiclesModel.getByIssuedStateAndLicensePlate(req.body.license_issued_state, req.body.license_plate);
+        if (existingVehicle.length > 0){
+            return res.status(401).json({status: 'failed', message: 'Uh oh, this vehicle is already registered in our system, please ask the primary owner to add you as a co-owner.'});
+        }
         await vehiclesModel.insertPrimaryOwner(req.body, id);
         return res.status(200).json({status: 'success', message: 'Successfully inserted vehicle'});
     } catch (err){
@@ -32,23 +38,6 @@ router.put('/accept', async function(req, res){
     } catch (err){
         return res.status(500)
             .json({err, message: 'Unable to accept vehicle ownership due to server errors'});
-    }
-});
-
-router.put('/:vehicle_id', async function(req, res){
-    const {vehicle_id} = req.params;
-    const {id} = req.userInfo;
-    try {
-        const vehicleOwnerRecords = await vehicleOwnershipModel.getByUserIdAndVehicleId(id, vehicle_id);
-        const isUserAuthorized = vehicleOwnerRecords.length>0 && vehicleOwnerRecords[0].is_primary_owner;
-        if (!isUserAuthorized)
-            return res.status(401)
-                .json({status: 'failed', message: 'Unauthorized action'});
-        await vehiclesModel.updateById(vehicle_id, req.body);
-        return res.status(200).json({status: 'success', message: 'Successfully updated vehicle'});
-    } catch (err){
-        return res.status(500)
-            .json({err, message: 'Unable to insert vehicle due to server errors'})
     }
 });
 
@@ -108,6 +97,15 @@ router.post('/ownership', async function(req, res){
         };
 
         await vehicleOwnershipModel.insert(record);
+
+        const userInfo = await usersModel.getById(id);
+        const vehicleInfo = await vehiclesModel.getById(vehicle_id);
+        await mailer.sendCoownVehicleInvitation(userInfo[0], inviteeInfo[0], vehicleInfo[0], async function(err, resData) {
+            if (err) {
+                console.log(err);
+            }
+        });
+
         return res.status(200).json({status: 'success', message: 'Successfully inserted ownership record'});
     } catch (err){
         return res.status(500)
@@ -146,6 +144,23 @@ router.put('/transfer_ownership', async function(req, res){
     } catch (err){
         return res.status(500)
             .json({err, message: 'Unable to change vehicle ownership due to server errors'});
+    }
+});
+
+router.put('/:vehicle_id', async function(req, res){
+    const {vehicle_id} = req.params;
+    const {id} = req.userInfo;
+    try {
+        const vehicleOwnerRecords = await vehicleOwnershipModel.getByUserIdAndVehicleId(id, vehicle_id);
+        const isUserAuthorized = vehicleOwnerRecords.length>0 && vehicleOwnerRecords[0].is_primary_owner;
+        if (!isUserAuthorized)
+            return res.status(401)
+                .json({status: 'failed', message: 'Unauthorized action'});
+        await vehiclesModel.updateById(vehicle_id, req.body);
+        return res.status(200).json({status: 'success', message: 'Successfully updated vehicle'});
+    } catch (err){
+        return res.status(500)
+            .json({err, message: 'Unable to insert vehicle due to server errors'})
     }
 });
 

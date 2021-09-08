@@ -58,8 +58,15 @@ router.post('/', async function(req, res){
             res.status(200)
                 .json({status: 'success', reservation_info});
         } else {
+            let message = 'Unauthorized reservation';
+            if (isUserCurrentlyHasTask){
+                message = 'The system detected you have unfulfilled reservation';
+            }
+            else if (isLotFull){
+                message = 'Parking lot is full';
+            }
             res.status(401)
-                .json({status: 'failed', data: 'Unauthorized reservation'});
+                .json({status: 'failed', data: message});
         }
     } catch (err){
         console.log(err);

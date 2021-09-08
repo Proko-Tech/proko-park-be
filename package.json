@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/ThomasLiARDJAVA/proko-park-be#readme",
   "dependencies": {
+    "apple-signin-auth": "^1.5.1",
     "bcrypt-nodejs": "0.0.3",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
@@ -28,7 +29,7 @@
     "helmet": "^4.2.0",
     "http-errors": "^1.8.0",
     "jsonwebtoken": "^8.5.1",
-    "knex": "^0.21.15",
+    "knex": "^0.21.21",
     "luxon": "^1.27.0",
     "morgan": "^1.10.0",
     "mysql": "^2.18.1",
