@@ -60,15 +60,62 @@ async function getUnoccupiedElectricByLotId(lot_id){
 }
 
 /**
+ * Getting unoccupied and reservable spots by Lot id
+ * @param lot_id
+ * @returns {Promise<void>}
+ */
+async function getUnoccupiedReservableByLotId(lot_id){
+    const result = await db('spots')
+        .where({lot_id})
+        .andWhere({spot_status: 'UNOCCUPIED'})
+        .andWhere({is_reservable: true})
+        .andWhere({alive_status: true})
+        .select('*');
+    return result;
+}
+
+/**
+ * Getting unoccupied and non-reservable spots by Lot id
+ * @param lot_id
+ * @returns {Promise<void>}
+ */
+async function getUnoccupiedNonReservableByLotId(lot_id){
+    const result = await db('spots')
+        .where({lot_id})
+        .andWhere({spot_status: 'UNOCCUPIED'})
+        .andWhere({is_reservable: false})
+        .andWhere({alive_status: true})
+        .select('*');
+    return result;
+}
+
+/**
  * Getting unoccupied spots by Lot id
  * @param lot_id
  * @returns {Promise<void>}
  */
-async function getUnoccupiedAndNotElectricByLotId(lot_id){
+async function getUnoccupiedNotElectricAndReservableByLotId(lot_id){
     const result = await db('spots')
         .where({lot_id})
         .andWhere({spot_status: 'UNOCCUPIED'})
         .andWhere({is_charging_station: false})
+        .andWhere({is_reservable: true})
+        .andWhere({alive_status: true})
+        .select('*');
+    return result;
+}
+
+/**
+ * get unoccupied not electrical, and non reservable spots by lot id
+ * @param lot_id
+ * @returns {Promise<void>}
+ */
+async function getUnoccupiedNotElectricAndNonReservableByLotId(lot_id){
+    const result = await db('spots')
+        .where({lot_id})
+        .andWhere({spot_status: 'UNOCCUPIED'})
+        .andWhere({is_charging_station: false})
+        .andWhere({is_reservable: false})
         .andWhere({alive_status: true})
         .select('*');
     return result;
@@ -104,10 +151,10 @@ async function getBySecret(secret){
  * @param spots
  * @returns {Promise<{spot_status: string}>}
  */
-async function batchMarkAliveStatus(spots){
+async function batchUpdate(spots){
     try {
         await spots.map(async (spot) => {
-            const update_body = pick(spot, ['alive_status']);
+            const update_body = pick(spot, ['alive_status', 'firmware_version']);
             await db('spots')
                 .update(update_body)
                 .where({secret: spot.secret});
@@ -118,4 +165,4 @@ async function batchMarkAliveStatus(spots){
     }
 }
 
-module.exports={updateSpotStatus, getSpotsByLotId, getUnoccupiedByLotId, getById, getBySecret, getUnoccupiedByLotId, getUnoccupiedElectricByLotId, getUnoccupiedAndNotElectricByLotId, batchMarkAliveStatus};
+module.exports={updateSpotStatus, getSpotsByLotId, getUnoccupiedByLotId, getById, getBySecret, getUnoccupiedByLotId, getUnoccupiedElectricByLotId, getUnoccupiedNotElectricAndReservableByLotId, batchUpdate, getUnoccupiedReservableByLotId, getUnoccupiedNonReservableByLotId, getUnoccupiedNotElectricAndNonReservableByLotId};

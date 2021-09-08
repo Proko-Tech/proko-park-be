@@ -10,6 +10,7 @@ const userModel = require('../../../../database/models/usersModel');
 const vehicleModel = require('../../../../database/models/vehiclesModel');
 const lotModel = require('../../../../database/models/lotsModel');
 const reservationModel = require('../../../../database/models/reservationModel');
+const spotsModel = require('../../../../database/models/spotsModel');
 
 router.get('/parking_lot/:id', async function(req, res){
     const {id} = req.params;
@@ -173,6 +174,7 @@ router.get('/:id', async function(req, res){
                 if (currentReservation.length > 0) {
                     const vehicles = await vehicleModel.getById(currentReservation[0].vehicle_id);
                     const lots = await lotModel.getById(currentReservation[0].lot_id);
+                    const spots = await spotsModel.getBySecret(currentReservation[0].spot_hash);
                     reservation_info = {
                         vehicle: vehicles[0],
                         parking_lot: lots[0],
@@ -181,11 +183,13 @@ router.get('/:id', async function(req, res){
                         arrived_at: currentReservation[0].arrived_at,
                         parked_at: currentReservation[0].parked_at,
                         reservation_id: currentReservation[0].id,
+                        spot: spots[0],
                     };
                 }
                 if (currentArrivedTasks.length > 0) {
                     const vehicles = await vehicleModel.getById(currentArrivedTasks[0].vehicle_id);
                     const lots = await lotModel.getById(currentArrivedTasks[0].lot_id);
+                    const spots = await spotsModel.getBySecret(currentArrivedTasks[0].spot_hash);
                     reservation_info = {
                         vehicle: vehicles[0],
                         parking_lot: lots[0],
@@ -194,11 +198,13 @@ router.get('/:id', async function(req, res){
                         arrived_at: currentArrivedTasks[0].arrived_at,
                         parked_at: currentArrivedTasks[0].parked_at,
                         reservation_id: currentArrivedTasks[0].id,
+                        spot: spots[0],
                     };
                 }
                 if (currentParkedTasks.length > 0) {
                     const vehicles = await vehicleModel.getById(currentParkedTasks[0].vehicle_id);
                     const lots = await lotModel.getById(currentParkedTasks[0].lot_id);
+                    const spots = await spotsModel.getBySecret(currentParkedTasks[0].spot_hash);
                     reservation_info = {
                         vehicle: vehicles[0],
                         parking_lot: lots[0],
@@ -207,6 +213,7 @@ router.get('/:id', async function(req, res){
                         arrived_at: currentParkedTasks[0].arrived_at,
                         parked_at: currentParkedTasks[0].parked_at,
                         reservation_id: currentParkedTasks[0].id,
+                        spot: spots[0],
                     };
                 }
             }

@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const {DateTime} = require('luxon');
 
 const lotsModel = require('../../../../database/models/lotsModel');
 const spotsModel = require('../../../../database/models/spotsModel');
@@ -17,7 +18,7 @@ router.post('/', async function(req, res){
     const userInfo = req.userInfo;
     const {lot_id, vehicle_id, card_id} = req.body;
     try {
-        const unoccupiedSpots = await spotsModel.getUnoccupiedAndNotElectricByLotId(lot_id);
+        const unoccupiedSpots = await spotsModel.getUnoccupiedNotElectricAndReservableByLotId(lot_id);
         const vehicleOwnerRecords = await vehicleOwnershipModel.getByUserIdAndVehicleId(userInfo.id, vehicle_id);
         const userCurrentReservedTasks = await reservationModel.getReservedByUserIdAndLotId(userInfo.id, lot_id);
         const userCurrentArrivedTasks = await reservationModel.getArrivedByUserIdAndLotId(userInfo.id, lot_id);
@@ -41,11 +42,13 @@ router.post('/', async function(req, res){
             const vehicles = await vehiclesModel.getById(vehicle_id);
             const lots = await lotsModel.getById(lot_id);
             const reservation = await reservationModel.getReservedByUserIdAndLotId(userInfo.id, lot_id);
+            const spots = await spotsModel.getBySecret(reservation[0].spot_hash);
             const reservation_info = {
                 vehicle: vehicles[0],
                 parking_lot: lots[0],
                 status: 'RESERVED',
                 reservation_id: reservation[0].id,
+                spot: spots[0],
             };
             await mailer.sendReservationConfirmation(lots[0], vehicles[0], cardInformation.card, user[0].email, user[0].first_name, async function(err, resData) {
                 if (err) {
@@ -68,9 +71,8 @@ router.post('/', async function(req, res){
 router.get('/can_cancel', async function(req, res){
     const {id} = req.userInfo;
     try {
-        const date = new Date();
-        const dateTwoHoursAgo = date.setHours(date.getHours() - 3);
-        const canceled_reservations = await reservationModel.getCanceledAfterDateAndUid(id, new Date(dateTwoHoursAgo));
+        const dateTwoHoursAgo = DateTime.local().minus({hours: 2}).toUTC();
+        const canceled_reservations = await reservationModel.getCanceledAfterDateAndUid(id, dateTwoHoursAgo.toSQL({includeOffset: false}));
         const isCancelValid = canceled_reservations.length < 3;
         return res.status(200).json({status: 'success', isCancelValid});
     } catch (err){
@@ -86,21 +88,20 @@ router.put('/cancel', async function(req, res){
         const reservation = await reservationModel.getById(reservation_id);
         if (reservation[0].user_id !== id)
             return res.status(401).json({status: 'failed', data: 'Unauthorized reservation'});
-        const date = new Date();
-        const dateTwoHoursAgo = date.setHours(date.getHours() - 2);
-        const canceled_reservations = await reservationModel.getCanceledAfterDateAndUid(id, new Date(dateTwoHoursAgo));
+        const dateTwoHoursAgo = DateTime.local().minus({hours: 2}).toUTC();
+        const canceled_reservations = await reservationModel.getCanceledAfterDateAndUid(id, dateTwoHoursAgo.toSQL({includeOffset: false}));
         const isCancelValid = canceled_reservations.length < 3;
         if (!isCancelValid){
             const userInfo = await usersModel.getById(id);
             const amount = 400;
             const description = 'Cancellation Fee 3 times';
             const charge = await stripePayment.authorizeByCustomerAndSource(amount, description, userInfo[0].stripe_customer_id, reservation[0].card_id);
-            const result = await reservationModel.updateCancelById(reservation_id);
+            const result = await reservationModel.updateCancelById(reservation_id, {stripe_charge_id: charge.id, total_price: amount/100, status: 'CANCELED'});
             if (result.reservation_status!== 'success')
                 return res.status(500).json({status: 'failed', data: 'Cannot cancel due to internal server error'});
             return res.status(200).json({status: 'success'});
         }
-        const result = await reservationModel.updateCancelById(reservation_id);
+        const result = await reservationModel.updateCancelById(reservation_id, {total_price: 0, status: 'CANCELED'});
         if (result.reservation_status!== 'success')
             return res.status(500).json({status: 'failed', data: 'Cannot cancel due to internal server error'});
         return res.status(200).json({status: 'success'});

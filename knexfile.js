@@ -6,6 +6,7 @@ const localSQLConnection = {
     user: process.env.DATAUSER,
     password: process.env.PASSWORD,
     database: process.env.DATABASE,
+    timezone: 'UTC',
 };
 
 const SQLConnection = localSQLConnection;
