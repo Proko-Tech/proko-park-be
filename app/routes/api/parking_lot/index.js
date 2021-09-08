@@ -130,7 +130,11 @@ router.post('/scan', async function(req, res){
             const date = DateTime.local().toUTC();
             if (isSpotValid){
                 const reservation_info = {
+<<<<<<< HEAD
+                    arrived_at: req.body.arrived_at,
+=======
                     arrived_at: date.toSQL({includeOffset: false}),
+>>>>>>> 8ccc5a2069a99b049987f4eb0aa089b74cc61a5b
                     status: 'ARRIVED',
                 };
                 const {reservation_status} = await reservationsModel.updateById(reservationInfo[newestIndex].id, reservation_info);
