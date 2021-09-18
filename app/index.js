@@ -19,7 +19,7 @@ server.use(express.urlencoded({extended: true}));
 server.use(express());
 server.use(express.json());
 
-server.use(logger('dev'));
+server.use(logger('combined'));
 server.use(helmet());
 server.use(cors());
 server.use(cookieParser());
