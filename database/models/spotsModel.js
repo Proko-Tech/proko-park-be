@@ -1,5 +1,6 @@
 const db = require('../dbConfig');
 const pick = require('../../utils/pick');
+const {DateTime} = require('luxon');
 
 /**
  * update spots in the array to the updated status
@@ -154,7 +155,9 @@ async function getBySecret(secret){
 async function batchUpdate(spots){
     try {
         await spots.map(async (spot) => {
+            const updated_date = DateTime.fromISO(new Date(spot.updated_at).toISOString()).toUTC().toSQL({includeOffset: false});
             const update_body = pick(spot, ['alive_status', 'firmware_version']);
+            update_body.updated_at = updated_date;
             await db('spots')
                 .update(update_body)
                 .where({secret: spot.secret});
