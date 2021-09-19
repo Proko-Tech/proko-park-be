@@ -146,7 +146,7 @@ router.post('/scan', async function(req, res){
                 return res.status(404)
                     .json({status:'failed', data: 'Reservation not found in system'});
             }
-            const unoccupiedSpots = await spotsModel.getUnoccupiedNotElectricAndNonReservableByLotId(lotInfo.id);
+            const unoccupiedSpots = await spotsModel.getUnoccupiedNotElectricByLotId(lotInfo.id);
             const isLotFull = unoccupiedSpots.length === 0;
 
             if (isLotFull) return res.status(404).json({status:'failed', data: 'Parking Lot Full'});

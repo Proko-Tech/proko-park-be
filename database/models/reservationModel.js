@@ -109,7 +109,7 @@ async function getDistinctLotsByUserId(user_id){
             available_spots: spots.length,
             available_electric_spots: electric_spots.length,
             available_reservable_spots: reservable_spots.length,
-            available_non_reservable_spots: spots.length - reservable_spots.length,
+            available_non_reservable_spots: spots.length ,
         };
         return lot_info;
     }));
@@ -341,7 +341,7 @@ async function insertAndHandleFCFSNonElectricArrive(lot_id, user_id){
     await db.transaction(async (transaction) => {
         try {
             const reserved_at = DateTime.local().toUTC().toSQL({includeOffset: false});
-            const emptySpots = await spotModel.getUnoccupiedNotElectricAndNonReservableByLotId(lot_id);
+            const emptySpots = await spotModel.getUnoccupiedNotElectricByLotId(lot_id);
             if (emptySpots.length === 0) await transaction.rollback();
             const props = ['secret', 'lot_id'];
             const spotInfo = {

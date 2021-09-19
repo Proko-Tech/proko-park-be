@@ -111,12 +111,12 @@ async function getUnoccupiedNotElectricAndReservableByLotId(lot_id){
  * @param lot_id
  * @returns {Promise<void>}
  */
-async function getUnoccupiedNotElectricAndNonReservableByLotId(lot_id){
+async function getUnoccupiedNotElectricByLotId(lot_id){
     const result = await db('spots')
         .where({lot_id})
         .andWhere({spot_status: 'UNOCCUPIED'})
         .andWhere({is_charging_station: false})
-        .andWhere({is_reservable: false})
+        // .andWhere({is_reservable: false})
         .andWhere({alive_status: true})
         .select('*');
     return result;
@@ -168,4 +168,4 @@ async function batchUpdate(spots){
     }
 }
 
-module.exports={updateSpotStatus, getSpotsByLotId, getUnoccupiedByLotId, getById, getBySecret, getUnoccupiedByLotId, getUnoccupiedElectricByLotId, getUnoccupiedNotElectricAndReservableByLotId, batchUpdate, getUnoccupiedReservableByLotId, getUnoccupiedNonReservableByLotId, getUnoccupiedNotElectricAndNonReservableByLotId};
+module.exports={updateSpotStatus, getSpotsByLotId, getUnoccupiedByLotId, getById, getBySecret, getUnoccupiedByLotId, getUnoccupiedElectricByLotId, getUnoccupiedNotElectricAndReservableByLotId, batchUpdate, getUnoccupiedReservableByLotId, getUnoccupiedNonReservableByLotId, getUnoccupiedNotElectricByLotId};
