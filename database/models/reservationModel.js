@@ -109,7 +109,7 @@ async function getDistinctLotsByUserId(user_id){
             available_spots: spots.length,
             available_electric_spots: electric_spots.length,
             available_reservable_spots: reservable_spots.length,
-            available_non_reservable_spots: spots.length ,
+            available_non_reservable_spots: spots.length - reservable_spots.length,
         };
         return lot_info;
     }));
