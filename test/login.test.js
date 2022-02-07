@@ -1,27 +1,27 @@
 const app = require('../app/index');
 const request = require('supertest');
 
-const successCredentialsNative = {
-    email: 'thomasligreat11@gmail.com',
-    password: 'Aaqwertyuiop1',
+const failedCredentialsNative = {
+    email: 'dfafasf@dsaf.com',
+    password: 'dfsaf',
     login_in_type: 'NATIVE',
 };
 
 const successCredentialsGoogle = {
     email: 'thomasligreat11@gmail.com',
-    password: 'Aaqwertyuiop1',
+    password: 'fdasfas',
     login_in_type: 'GOOGLE',
 };
 
-const successCredentialsFacebook = {
-    email: '2586709983@qq.com',
-    password: 'Aaqwertyuiop1',
+const failedCredentialsFacebook = {
+    email: 'amazingfacebook@qq.com',
+    password: 'sfadfsafas',
     login_in_type: 'FACEBOOK',
 };
 
 const failedCredentialsFacebookNative = {
     email: '2586709983@qq.com',
-    password: 'Aaqwertyuiop1',
+    password: 'fdasf',
     login_in_type: 'NATIVE',
 };
 
@@ -47,18 +47,18 @@ describe('authentication test', function(){
     });
 
     describe('POST /api/user_authenticate with native log in', function() {
-        it('Should return a 200 response if the user is logged in', function(done){
+        it('Should return a 404 response if the user is not natively signed up', function(done){
             request(app).post('/api/user_authenticate')
-                .send({userData: successCredentialsNative})
-                .expect(202, done);
+                .send({userData: failedCredentialsNative})
+                .expect(404, done);
         });
     });
 
     describe('POST /api/user_authenticate with successful log in', function() {
-        it('Should return a 202 response if the user log in success', function(done){
+        it('Should return a 404 response if the user log in does not exist', function(done){
             request(app).post('/api/user_authenticate')
-                .send({userData: successCredentialsFacebook})
-                .expect(202, done);
+                .send({userData: failedCredentialsFacebook})
+                .expect(404, done);
         });
     });
 
@@ -79,18 +79,18 @@ describe('authentication test', function(){
     });
 
     describe('POST /api/user_authenticate with failed log in', function() {
-        it('Should return a 404 response if the password is wrong', function(done){
+        it('Should return a 401 response if the user not correctly logged in', function(done){
             request(app).post('/api/user_authenticate')
                 .send({userData: failedCredentialsNativeWrongPass})
-                .expect(404, done);
+                .expect(401, done);
         });
     });
 
     describe('POST /api/user_authenticate with failed log in', function() {
-        it('Should return a 401 response if the user signed up with a different method', function(done){
+        it('Should return a 404 response if the user does not exist', function(done){
             request(app).post('/api/user_authenticate')
                 .send({userData: failedCredentialsFacebookNative})
-                .expect(401, done);
+                .expect(404, done);
         });
     });
 
@@ -105,7 +105,7 @@ describe('authentication test', function(){
     describe('POST /api/user_authenticate/social with failed log in', function() {
         it('Should return a 401 response if the user signed up with a different method', function(done){
             request(app).post('/api/user_authenticate/social')
-                .send({userData: successCredentialsNative})
+                .send({userData: failedCredentialsNative})
                 .expect(401, done);
         });
     });
