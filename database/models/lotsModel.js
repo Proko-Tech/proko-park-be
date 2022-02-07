@@ -117,7 +117,7 @@ async function getAndNonReservableSpotNumsById(id){
         .where({id})
         .select('*');
     if (lot.length>0) {
-        const spots = await spotsModel.getUnoccupiedNonReservableByLotId(lot[0].id);
+        const spots = await spotsModel.getUnoccupiedByLotId(lot[0].id);
         return spots.length;
     } else {
         return null;

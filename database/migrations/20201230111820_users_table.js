@@ -16,6 +16,7 @@ exports.up = function(knex) {
         tbl.boolean('is_verified').defaultTo(false);
         tbl.text('verify_code');
         tbl.text('stripe_customer_id');
+        tbl.text('apple_user');
     });
 };
 

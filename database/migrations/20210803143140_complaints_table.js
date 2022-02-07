@@ -1,3 +1,4 @@
+const internal_site_enum= ['VISIBLE','INVISIBLE'];
 
 exports.up = function(knex) {
     return knex.schema.createTable('complaints', (tbl)=>{
@@ -8,6 +9,9 @@ exports.up = function(knex) {
         tbl.text('message').notNullable();
         tbl.text('license_plate');
         tbl.timestamps(true,true);// creates created_at column and updated_at column
+        tbl.integer('admin_id').notNullable();
+        tbl.enum('internal_site', internal_site_enum,
+            {useNative: true, enumName:'internal_site_enum'}).notNullable().index();
     });
 };
 

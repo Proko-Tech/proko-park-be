@@ -144,7 +144,7 @@ router.post('/scan', async function(req, res){
             // TODO: add first come first serve edits
             if (!isFCFSUser){
                 return res.status(404)
-                    .json({status:'failed', data: 'Reservation not found in system'});
+                    .json({status:'failed', data: 'User currently has unfinished parking.'});
             }
             const unoccupiedSpots = await spotsModel.getUnoccupiedNotElectricByLotId(lotInfo.id);
             const isLotFull = unoccupiedSpots.length === 0;

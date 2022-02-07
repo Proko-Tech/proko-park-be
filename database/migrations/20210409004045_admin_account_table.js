@@ -23,6 +23,8 @@ exports.up = function(knex) {
         tbl.enum('membership_status', membership_status_enum, {useNative: true, enumName:'membership_status_enum'}).notNullable().index();
         tbl.text('notes');
         tbl.timestamps(true,true);// creates created_at column and updated_at column
+        tbl.integer('admin_id').notNullable();
+        tbl.integer('lot_id').notNullable();
     });
 };
 
