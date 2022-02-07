@@ -168,4 +168,4 @@ async function batchUpdate(spots){
     }
 }
 
-module.exports={updateSpotStatus, getSpotsByLotId, getUnoccupiedByLotId, getById, getBySecret, getUnoccupiedByLotId, getUnoccupiedElectricByLotId, getUnoccupiedNotElectricAndReservableByLotId, batchUpdate, getUnoccupiedReservableByLotId, getUnoccupiedNonReservableByLotId, getUnoccupiedNotElectricByLotId};
+module.exports={updateSpotStatus, getSpotsByLotId, getUnoccupiedByLotId, getById, getBySecret, getUnoccupiedElectricByLotId, getUnoccupiedNotElectricAndReservableByLotId, batchUpdate, getUnoccupiedReservableByLotId, getUnoccupiedNonReservableByLotId, getUnoccupiedNotElectricByLotId};
