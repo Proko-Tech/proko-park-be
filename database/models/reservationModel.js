@@ -39,6 +39,7 @@ async function getWithLotByUserId(user_id){
     const rows = await db('reservations')
         .join('lots','reservations.lot_id', 'lots.id')
         .where({user_id})
+        .orderBy('reserved_at', 'desc')
         .select('*');
     return rows;
 }
