@@ -20,10 +20,10 @@ jobs:
       DATAUSER: ${{ secrets.DATAUSER }}
       PASSWORD: ${{ secrets.PASSWORD }}
       DATABASE: ${{ secrets.DATABASE }}
-      TOKENKEY: ${{ secret.TOKENKEY }}
-      USERTOKENKEY: ${{ secret.USERTOKENKEY }}
-      EMAILUSER: ${{ secret.EMAILUSER }}
-      EMAILPASSWORD: ${{ secret.EMAILPASSWORD }}
+      TOKENKEY: ${{ secrets.TOKENKEY }}
+      USERTOKENKEY: ${{ secrets.USERTOKENKEY }}
+      EMAILUSER: ${{ secrets.EMAILUSER }}
+      EMAILPASSWORD: ${{ secrets.EMAILPASSWORD }}
 
     strategy:
       matrix:
