@@ -4,7 +4,7 @@
   "description": "Backend Rest API for proko park app under proko tech llc",
   "main": "app.js",
   "scripts": {
-    "test": "node_modules/mocha/bin/mocha test --exit",
+    "test": "jest",
     "start": "node app.js"
   },
   "repository": {
@@ -40,6 +40,7 @@
     "chai": "^4.3.4",
     "eslint": "^7.16.0",
     "eslint-config-google": "^0.14.0",
+    "jest": "^27.5.1",
     "mocha": "^8.3.2",
     "nodemon": "^2.0.6",
     "supertest": "^6.1.3"
