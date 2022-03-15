@@ -1,9 +1,10 @@
 const app = require('../../app/index');
 const supertest = require('supertest');
 
-const db = require('../../database/dbConfig');
 jest.mock('../../database/models/usersModel');
+jest.mock('../../services/stripe/customers');
 const usersModel = require('../../database/models/usersModel');
+const stripeCustomer = require('../../services/stripe/customers');
 
 describe('authentication endpoints', () => {
     describe('POST /api/user_authenticate', () => {
@@ -87,6 +88,20 @@ describe('authentication endpoints', () => {
                         password: '$2a$10$JhHw7tbG9bDdMKoSqjGa0.HoKSWKTZM37kShbE0VjfCPo0bGU4Phu', sign_up_type: 'GOOGLE',
                     },
                 ];
+            }
+            const res = await supertest(app).post('/api/user_authenticate/social').send({userData: {email:'test@email.com', password: 'fasdfsa', login_in_type:'GOOGLE'}});
+            expect(res.status).toBe(202);
+        });
+
+        it('should return status 202 when user not found but successfully inserted', async () => {
+            usersModel.getByEmail = jest.fn()
+                .mockImplementationOnce(() => {return []})
+                .mockImplementationOnce(() => {return [{id:1, email: 'test@email.com', password: 'fasdfsa', sign_up_type: 'GOOGLE'}]});
+            stripeCustomer.create = () => {
+                return {id:'stripeId'}
+            }
+            usersModel.insert = () => {
+                return {user_status:'success'}
             }
             const res = await supertest(app).post('/api/user_authenticate/social').send({userData: {email:'test@email.com', password: 'fasdfsa', login_in_type:'GOOGLE'}});
             expect(res.status).toBe(202);
