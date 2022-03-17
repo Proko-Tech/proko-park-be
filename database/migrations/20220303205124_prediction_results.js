@@ -6,7 +6,7 @@ exports.up = function(knex) {
         tbl.boolean('is_car_prediction').notNullable();
         tbl.boolean('is_car');
         tbl.text('license_plate_prediction').notNullable();
-        tbl.text('true_license_plate');
+        tbl.text('license_plate');
         tbl.timestamp('created_at').notNullable();
         tbl.text('spot_secret').notNullable();
     });
