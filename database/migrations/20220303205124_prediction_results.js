@@ -4,9 +4,9 @@ exports.up = function(knex) {
         tbl.increments('id').unique().notNullable();
         tbl.text('image_url').notNullable();
         tbl.boolean('is_car_prediction').notNullable();
-        tbl.boolean('true_car_prediction');
-        tbl.boolean('license_plate_prediction').notNullable();
-        tbl.boolean('true_license_prediction');
+        tbl.boolean('is_car');
+        tbl.text('license_plate_prediction').notNullable();
+        tbl.text('license_plate');
         tbl.timestamp('created_at').notNullable();
         tbl.text('spot_secret').notNullable();
     });
