@@ -6,6 +6,7 @@ const verifyUserToken = require('../../middlewares/users/verifyUserToken');
 // api folders
 const parkingLotRouter = require('./parking_lot');
 const parkingLotAuthenticateRouter = require('./parking_lot_authenticate');
+const v0ParkingLotRouter = require('./v0_parking_lot');
 
 const userRoute = require('./users');
 const userAuthenticateRoute = require('./user_authenticate');
@@ -17,6 +18,7 @@ const vehiclesRouter = require('./vehicles');
 
 // routes
 router.use('/parking_lot', verifyParkingLotToken, parkingLotRouter);
+router.use('/v0_parking_lot', verifyParkingLotToken, v0ParkingLotRouter);
 router.use('/parking_lot_authenticate', parkingLotAuthenticateRouter);
 
 // user routes:
