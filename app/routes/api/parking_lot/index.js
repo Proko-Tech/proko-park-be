@@ -43,7 +43,7 @@ router.put('/spot', async function(req, res){
                 parked_at: date.toSQL({includeOffset: false}),
                 status: 'PARKED',
             };
-            const status = await reservationsModel.updateById(previous_arrived_reservation[0].id, reservation_info);
+            const status = await reservationsModel.updateById(previous_reserved_reservation[0].id, reservation_info);
             reservation_status = status.reservation_status;
             spot_update_status = await spotsModel.updateSpotStatus(spotInfo);
         } else if (isArrivedToExited){
