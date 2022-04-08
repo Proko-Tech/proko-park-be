@@ -20,15 +20,26 @@ router.put('/spot', async function(req, res){
         const previous_spot = await spotsModel.getBySecret(spotInfo.secret);
         const {lot_status} = await lotsModel.markLotAliveStatusByIdAndHash(lotInfo);
         const previous_arrived_reservation = await reservationsModel.getArrivedBySpotHashAndLotId(spotInfo.secret, lotInfo.id);
+        const previous_reserved_reservation = await reservationsModel.getReservedBySpotHashAndLotId(spotInfo.secret, lotInfo.id);
         const previous_parked_reservation = await reservationsModel.getParkedBySpotHashAndLotId(spotInfo.secret, lotInfo.id);
 
         let reservation_status = 'failed';
         let spot_update_status = 'failed';
         const isReservedToArrived = previous_spot.length > 0 && previous_arrived_reservation.length>0 && spotInfo.spot_status==='OCCUPIED' && previous_spot[0].spot_status === 'RESERVED' && previous_arrived_reservation[0].status === 'ARRIVED';
+        const isReservedToParked = previous_spot.length > 0 && previous_reserved_reservation.length > 0 && spotInfo.spot_status==='OCCUPIED' && previous_spot[0].spot_status === 'RESERVED' && previous_reserved_reservation[0].status === 'RESERVED';
         const isArrivedToExited = previous_spot.length > 0 && previous_parked_reservation.length>0 && spotInfo.spot_status==='UNOCCUPIED' && previous_spot[0].spot_status === 'OCCUPIED' && previous_parked_reservation[0].status === 'PARKED';
         const date = DateTime.local().toUTC();
         if (isReservedToArrived){
             const reservation_info = {
+                parked_at: date.toSQL({includeOffset: false}),
+                status: 'PARKED',
+            };
+            const status = await reservationsModel.updateById(previous_arrived_reservation[0].id, reservation_info);
+            reservation_status = status.reservation_status;
+            spot_update_status = await spotsModel.updateSpotStatus(spotInfo);
+        } else if (isReservedToParked) {
+            const reservation_info = {
+                arrived_at: date.toSQL({includeOffset: false}),
                 parked_at: date.toSQL({includeOffset: false}),
                 status: 'PARKED',
             };
