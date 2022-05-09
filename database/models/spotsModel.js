@@ -156,7 +156,7 @@ async function batchUpdate(spots){
     try {
         await spots.map(async (spot) => {
             const updated_date = DateTime.fromISO(new Date(spot.updated_at).toISOString()).toUTC().toSQL({includeOffset: false});
-            const update_body = pick(spot, ['alive_status', 'firmware_version']);
+            const update_body = pick(spot, ['alive_status', 'firmware_version', 'last_distance', 'cam_alive_status']);
             update_body.updated_at = updated_date;
             await db('spots')
                 .update(update_body)
