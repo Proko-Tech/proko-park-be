@@ -4,6 +4,32 @@ const router = express.Router();
 const lotsModel = require('../../../../database/models/lotsModel');
 const spotsModel = require('../../../../database/models/spotsModel');
 
+router.get('/search/:payload', async function(req, res){
+    const {payload} = req.params;
+    try {
+        const modified_search_string = '%'.concat(payload, '%');
+        const result = await lotsModel.getByAlikeNameOrAddress(modified_search_string);
+        const parking_lot_info = await Promise.all(result.map((element) => {
+            const lot_info = {
+                ...element,
+                lot_id: element.id,
+            };
+            return lot_info;
+        }));
+        if (result) {
+            res.status(200)
+                .json({status: 'success', parking_lot_info});
+        } else {
+            res.status(404)
+                .json({status:'failed', parking_lot_info: 'Unable to find parking lot information'});
+        }
+    } catch (err) {
+        console.log(err);
+        res.status(500)
+            .json({err, status:'failed', data: 'Unable to make request to server'});
+    }
+});
+
 router.get('/:id', async function(req, res){
     const {id} = req.params;
     try {

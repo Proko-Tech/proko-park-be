@@ -164,4 +164,30 @@ async function getClosestByLatLong(lat, long){
     return result;
 }
 
-module.exports={getByIdAndHash, markLotAliveStatusByIdAndHash, getLotAndSpotsByHash, getAndUnoccupiedSpotNumsById, getAndUnoccupiedElectricSpotNumsById, getAndReservableSpotNumsById, getAndNonReservableSpotNumsById, getById, getClosestByLatLong};
+/**
+ * get alike name or alike address given a string payload
+ * @param payload - format of: '%stringofsearch%'
+ * @returns {Promise<unknown[]>}
+ */
+async function getByAlikeNameOrAddress(payload) {
+    const lots = await db('lots')
+        .whereRaw('name LIKE ?', payload)
+        .orWhereRaw('address LIKE ?', payload)
+        .select('*');
+    const result = await Promise.all(lots.map(async (lot)=> {
+        const spots = await spotsModel.getUnoccupiedByLotId(lot.id);
+        const electric_spots = await spotsModel.getUnoccupiedElectricByLotId(lot.id);
+        const reservable_spots = await spotsModel.getUnoccupiedReservableByLotId(lot.id);
+        const lot_info = {
+            ...lot,
+            available_spots: spots.length,
+            available_electric_spots: electric_spots.length,
+            available_reservable_spots: reservable_spots.length,
+            available_non_reservable_spots: spots.length - reservable_spots.length,
+        };
+        return lot_info;
+    }));
+    return result;
+}
+
+module.exports={getByIdAndHash, markLotAliveStatusByIdAndHash, getLotAndSpotsByHash, getAndUnoccupiedSpotNumsById, getAndUnoccupiedElectricSpotNumsById, getAndReservableSpotNumsById, getAndNonReservableSpotNumsById, getById, getClosestByLatLong, getByAlikeNameOrAddress};
