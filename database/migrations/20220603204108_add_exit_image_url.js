@@ -7,6 +7,6 @@ exports.up = function(knex) {
 
 exports.down = function(knex) {
     return knex.schema.table('prediction_results', (tbl)=>{
-        tbl.text('exit_image_url');
+        tbl.dropColumn('exit_image_url');
     });
 };
