@@ -20,7 +20,8 @@ Visit `localhost:3000` for testing any routes.
 
 ## Production:
 To test production functionalities run the following commands:
-`docker-compose build`
+
+`docker-compose build`<br>
 `docker-compose up` or `docker-compose up -d` (to run in detached mode)
 
 ## Tech Overview
