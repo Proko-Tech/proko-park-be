@@ -63,7 +63,7 @@ router.put('/spot', async function(req, res){
             spot_update_status = await spotsModel.updateSpotStatus(spotInfo);
 
             // calculate elapsed time, calculate price, execute payment
-            if (reservation_status === 'success') {
+            if (reservation_status === 'success' && previous_parked_reservation[0].user_id !== -1) {
                 const diff = Math.abs(date.valueOf() - previous_parked_reservation[0].parked_at.valueOf());
                 const hourDifference = Math.ceil(diff/1000/60/60);
                 const userInfo = await usersModel.getById(previous_parked_reservation[0].user_id);
