@@ -28,7 +28,7 @@ router.put('/spot', async function(req, res){
         const isReservedToArrived = previous_spot.length > 0 && previous_arrived_reservation.length>0 && spotInfo.spot_status==='OCCUPIED' && previous_spot[0].spot_status === 'RESERVED' && previous_arrived_reservation[0].status === 'ARRIVED';
         const isReservedToParked = previous_spot.length > 0 && previous_reserved_reservation.length > 0 && spotInfo.spot_status==='OCCUPIED' && previous_spot[0].spot_status === 'RESERVED' && previous_reserved_reservation[0].status === 'RESERVED';
         const isArrivedToExited = previous_spot.length > 0 && previous_parked_reservation.length>0 && spotInfo.spot_status==='UNOCCUPIED' && previous_spot[0].spot_status === 'OCCUPIED' && previous_parked_reservation[0].status === 'PARKED';
-        const isUnoccupiedToParked = previous_spot.length > 0 && previous_spot.spot_status === 'UNOCCUPIED' && spotInfo.spot_status === 'OCCUPIED' && !isReservedToArrived && !isReservedToParked && !isArrivedToExited;
+        const isUnoccupiedToParked = previous_spot.length > 0 && previous_spot[0].spot_status === 'UNOCCUPIED' && spotInfo.spot_status === 'OCCUPIED' && !isReservedToArrived && !isReservedToParked && !isArrivedToExited;
 
         const date = DateTime.local().toUTC();
         if (isUnoccupiedToParked) {
