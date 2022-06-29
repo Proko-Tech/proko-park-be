@@ -116,6 +116,7 @@ router.put('/spot', async function(req, res){
             reservation_status = 'success';
             spot_update_status = await spotsModel.updateSpotStatus(spotInfo);
         } else if (isViolationArriveSpotChange) {
+            // TODO: dynamic reallocation
             reservation_status = 'success';
             spot_update_status = await spotsModel.updateSpotStatus(spotInfo);
         }
