@@ -32,6 +32,8 @@ router.put('/spot', async function(req, res){
 
         const date = DateTime.local().toUTC();
         if (isUnoccupiedToParked) {
+            // reservation updated in cloud vision server
+            reservation_status = 'success';
             spot_update_status = await spotsModel.updateSpotStatus(spotInfo);
         }
         else if (isReservedToArrived){
