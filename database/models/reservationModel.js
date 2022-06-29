@@ -263,6 +263,21 @@ async function getParkedBySpotHashAndLotId(spot_hash, lot_id){
 }
 
 /**
+ * get fulfilled by spot hash and lot id
+ * @param spot_hash
+ * @param lot_id
+ * @returns {Promise<void>}
+ */
+async function getFulfilledBySpotHashAndLotId(spot_hash, lot_id){
+    const rows = await db('reservations')
+        .where({spot_hash})
+        .andWhere({lot_id})
+        .andWhere({status: 'FULFILLED'})
+        .select('*');
+    return rows;
+}
+
+/**
  * update the reservation info by id
  * @param id
  * @param reservation_info
@@ -376,4 +391,4 @@ async function insertAndHandleFCFSNonElectricArrive(lot_id, user_id){
     return result;
 }
 
-module.exports={getById, getWithLotByUserId, getCanceledAfterDateAndUid, updateCancelById, getDistinctLotsByUserId, getByUserIdAndLotId, getReservedBySpotHashAndLotId, getWithVehicleAndLotByUserId, getReservedByUserId, getArrivedByUserId, getParkedByUserId, getArrivedByUserIdAndLotId, getParkedByUserIdAndLotId, getParkedBySpotHashAndLotId, getReservedByUserIdAndLotId, getArrivedBySpotHashAndLotId, updateById, insertAndHandleNonElectricReserve, insertAndHandleFCFSNonElectricArrive};
+module.exports={getById, getWithLotByUserId, getCanceledAfterDateAndUid, updateCancelById, getDistinctLotsByUserId, getByUserIdAndLotId, getReservedBySpotHashAndLotId, getWithVehicleAndLotByUserId, getReservedByUserId, getArrivedByUserId, getParkedByUserId, getArrivedByUserIdAndLotId, getParkedByUserIdAndLotId, getParkedBySpotHashAndLotId, getFulfilledBySpotHashAndLotId, getReservedByUserIdAndLotId, getArrivedBySpotHashAndLotId, updateById, insertAndHandleNonElectricReserve, insertAndHandleFCFSNonElectricArrive};
