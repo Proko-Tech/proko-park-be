@@ -30,6 +30,7 @@ router.put('/spot', async function(req, res){
         const isReservedToParked = previous_spot.length > 0 && previous_reserved_reservation.length > 0 && spotInfo.spot_status==='OCCUPIED' && previous_spot[0].spot_status === 'RESERVED' && previous_reserved_reservation[0].status === 'RESERVED';
         const isArrivedToExited = previous_spot.length > 0 && previous_parked_reservation.length>0 && spotInfo.spot_status==='UNOCCUPIED' && previous_spot[0].spot_status === 'OCCUPIED' && previous_parked_reservation[0].status === 'PARKED';
         const isFulfilledSpotChange = previous_spot.length > 0 && previous_fulfilled_reservation.length>0 && spotInfo.spot_status==='UNOCCUPIED' && previous_spot[0].spot_status === 'OCCUPIED' && previous_fulfilled_reservation[0].status === 'FULFILLED';
+        const isViolationSpotChange = previous_spot.length > 0 && spotInfo.spot_status==='UNOCCUPIED' && previous_spot[0].spot_status === 'VIOLATION';
         const isUnoccupiedToParked = previous_spot.length > 0 && previous_spot[0].spot_status === 'UNOCCUPIED' && spotInfo.spot_status === 'OCCUPIED' && !isReservedToArrived && !isReservedToParked && !isArrivedToExited;
 
         const date = DateTime.local().toUTC();
@@ -107,6 +108,9 @@ router.put('/spot', async function(req, res){
                 }
             }
         } else if (isFulfilledSpotChange){
+            reservation_status = 'success';
+            spot_update_status = await spotsModel.updateSpotStatus(spotInfo);
+        } else if (isViolationSpotChange){
             reservation_status = 'success';
             spot_update_status = await spotsModel.updateSpotStatus(spotInfo);
         }
