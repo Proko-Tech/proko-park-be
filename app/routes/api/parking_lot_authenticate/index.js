@@ -16,16 +16,16 @@ router.post('/', async function(req, res){
             const token = await lotToken.generateToken(lotInfo);
             res.clearCookie('lotToken');
             res.cookie("lotToken", token);
-            res.status(202)
+            return res.status(202)
                 .json({status:'success', data:token});
         } else {
             res.clearCookie('lotToken');
-            res.status(404)
+            return res.status(404)
                 .json({status:'failed', data: 'Unable to find parking lot in database'});
         }
     } catch (err) {
         res.clearCookie('lotToken');
-        res.status(500)
+        return res.status(500)
             .json({err, status:'failed', data: 'Unable to make request to server'});
     }
 });

@@ -36,7 +36,7 @@ router.post('/', async function(req, res){
         if (isValidReservation){
             const {reservation_status} = await reservationModel.insertAndHandleNonElectricReserve(lot_id, userInfo.id, vehicle_id, card_id);
             if (reservation_status === 'failed'){
-                res.status(401)
+                return res.status(401)
                     .json({status: 'failed', data: 'Unauthorized reservation'});
             }
             const vehicles = await vehiclesModel.getById(vehicle_id);
@@ -55,7 +55,7 @@ router.post('/', async function(req, res){
                     console.log(err);
                 }
             });
-            res.status(200)
+            return res.status(200)
                 .json({status: 'success', reservation_info});
         } else {
             let message = 'Unauthorized reservation';
@@ -65,12 +65,12 @@ router.post('/', async function(req, res){
             else if (isLotFull){
                 message = 'Parking lot is full';
             }
-            res.status(401)
+            return res.status(401)
                 .json({status: 'failed', data: message});
         }
     } catch (err){
         console.log(err);
-        res.status(500)
+        return res.status(500)
             .json({err, data: 'Unable to reserve parking spot, internal server error'});
     }
 });
@@ -83,7 +83,7 @@ router.get('/can_cancel', async function(req, res){
         const isCancelValid = canceled_reservations.length < 3;
         return res.status(200).json({status: 'success', isCancelValid});
     } catch (err){
-        res.status(500)
+        return res.status(500)
             .json({err, data: 'Unable to cancel reservation, internal server error'});
     }
 });
@@ -114,7 +114,7 @@ router.put('/cancel', async function(req, res){
         return res.status(200).json({status: 'success'});
     } catch (err){
         console.log(err);
-        res.status(500)
+        return res.status(500)
             .json({err, data: 'Unable to cancel reservation, internal server error'});
     }
 });

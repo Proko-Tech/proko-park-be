@@ -22,14 +22,14 @@ router.post('/', limiter.signUpLimiter, async function(req, res){
         const users = await userModel.getByEmail(user.email);
         user.password = bcrypt.hashSync(user.password, null, null);
         if (users.length!==0) {
-            res.status(401)
+            return res.status(401)
                 .json({status: 'failed', message: 'Another account using this email was found'});
         } else {
             const stripe_profile = await stripeCustomer.create(user.first_name+' '+user.last_name, user.email);
             user.stripe_customer_id = stripe_profile.id;
             const {user_status} = await userModel.insert(user);
             if (user_status === 'failed'){
-                res.status(502)
+                return res.status(502)
                     .json({status: 'failed', message: 'Signed up failed due to server error.'})
             }
             const result = await userModel.getByEmail(user.email);
@@ -45,12 +45,12 @@ router.post('/', limiter.signUpLimiter, async function(req, res){
                     console.log(err);
                 }
             });
-            res.status(200)
+            return res.status(200)
                 .json({status: 'success', data:token, message: 'success'});
         }
     } catch (err) {
         console.log(err);
-        res.status(500)
+        return res.status(500)
             .json({err, message: 'Unable to get user from database'})
     }
 });
@@ -60,14 +60,14 @@ router.get('/checkEmail/:email', async function(req, res){
     try {
         const users = await userModel.getByEmail(email);
         if (users.length!==0) {
-            res.status(401)
+            return res.status(401)
                 .json({status: 'failed', msg: 'Another account using this email was found'});
         } else {
-            res.status(200)
+            return res.status(200)
                 .json({status: 'success', message: 'success'});
         }
     } catch (err) {
-        res.status(500)
+        return res.status(500)
             .json({err, message: 'Unable to get user from database'})
     }
 });

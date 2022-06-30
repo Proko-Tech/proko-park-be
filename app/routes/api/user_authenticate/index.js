@@ -79,9 +79,6 @@ router.post('/social', async function(req, res){
             return res.status(202)
                 .json({status: 'success', data: token, type: 'SIGNUP'});
         } else {
-            // const isPasswordMatch = bcrypt.compareSync(userData.password, result[0].password);
-            // if (!isPasswordMatch) return res.status(404).json({status: 'failed', message: 'Unauthorized action'});
-            // else {
             const userInfo = {
                 ...pick(result[0], ['id', 'email']),
             };
@@ -147,9 +144,6 @@ router.post('/sign-in-with-apple', async function(req, res, next) {
                 return res.status(202)
                     .json({status: 'success', data: token, type: 'SIGNUP'});
             } else {
-                // const isPasswordMatch = bcrypt.compareSync(userData.password, result[0].password);
-                // if (!isPasswordMatch) return res.status(404).json({status: 'failed', message: 'Unauthorized action'});
-                // else {
                 const userInfo = {
                     ...pick(result[0], ['id', 'email']),
                 };

@@ -17,15 +17,15 @@ router.get('/search/:payload', async function(req, res){
             return lot_info;
         }));
         if (result) {
-            res.status(200)
+            return res.status(200)
                 .json({status: 'success', parking_lot_info});
         } else {
-            res.status(404)
+            return res.status(404)
                 .json({status:'failed', parking_lot_info: 'Unable to find parking lot information'});
         }
     } catch (err) {
         console.log(err);
-        res.status(500)
+        return res.status(500)
             .json({err, status:'failed', data: 'Unable to make request to server'});
     }
 });
@@ -38,14 +38,14 @@ router.get('/:id', async function(req, res){
         result.available_reservable_spots = await lotsModel.getAndReservableSpotNumsById(id);
         result.available_non_reservable_spots = await lotsModel.getAndNonReservableSpotNumsById(id);
         if (result) {
-            res.status(200)
+            return res.status(200)
                 .json({status: 'success', parking_lot_info: result});
         } else {
-            res.status(404)
+            return res.status(404)
                 .json({status:'failed', parking_lot_info: 'Unable to find parking lot information'});
         }
     } catch (err) {
-        res.status(500)
+        return res.status(500)
             .json({err, status:'failed', data: 'Unable to make request to server'});
     }
 });
@@ -62,14 +62,14 @@ router.post('/closest', async function(req, res){
             return lot_info;
         }));
         if (result) {
-            res.status(200)
+            return res.status(200)
                 .json({status: 'success', parking_lot_info});
         } else {
-            res.status(404)
+            return res.status(404)
                 .json({status:'failed', parking_lot_info: 'Unable to find parking lot information'});
         }
     } catch (err) {
-        res.status(500)
+        return res.status(500)
             .json({err, status:'failed', data: 'Unable to make request to server'});
     }
 });

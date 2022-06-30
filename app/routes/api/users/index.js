@@ -17,13 +17,13 @@ router.get('/parking_lot/:id', async function(req, res){
     try {
         if (id === JSON.stringify(req.userInfo.id)) {
             const parking_lots = await reservationModel.getDistinctLotsByUserId(id);
-            res.status(200).json({data:parking_lots, message: 'Parking lot histories found'});
+            return res.status(200).json({data:parking_lots, message: 'Parking lot histories found'});
         } else {
-            res.status(401)
+            return res.status(401)
                 .json({status: 'failed', message: 'Unauthorized action'});
         }
     } catch (err) {
-        res.status(500)
+        return res.status(500)
             .json({err, message: 'Unable to get parking lot histories from database'});
     }
 });
@@ -33,13 +33,13 @@ router.put('/', async function(req, res){
     try {
         const status = await userModel.updateById(id, req.body);
         if (status.uodate_status) {
-            res.status(200).json({status: 'success'});
+            return res.status(200).json({status: 'success'});
         } else {
-            res.status(401)
+            return res.status(401)
                 .json({status: 'failed', message: 'Unauthorized action'});
         }
     } catch (err){
-        res.status(500)
+        return res.status(500)
             .json({err, message: 'Unable to change user Info due to server error'});
     }
 });
@@ -57,7 +57,7 @@ router.post('/check_password', async function(req, res){
             return res.status(404).json({message: 'Password matched'});
         }
     } catch (err){
-        res.status(500)
+        return res.status(500)
             .json({err, message: 'Unable to check password due to server error'});
     }
 });
@@ -74,7 +74,7 @@ router.put('/attributes/password', async function(req, res){
         else
             return res.status(404).json({message: 'Password reset failed'});
     } catch (err){
-        res.status(500)
+        return res.status(500)
             .json({err, message: 'Unable to check password due to server error'});
     }
 });
@@ -98,7 +98,7 @@ router.put('/attributes/verify_email', async function(req, res){
         else
             return res.status(404).json({message: 'Update failed'});
     } catch (err){
-        res.status(500)
+        return res.status(500)
             .json({err, message: 'Unable to check password due to server error'});
     }
 });
@@ -115,10 +115,10 @@ router.get('/send_code', async function(req, res){
                 console.log(err);
             }
         });
-        res.status(200)
+        return res.status(200)
             .json({status: 'success', message: 'code sent successfully'});
     } catch (err){
-        res.status(500)
+        return res.status(500)
             .json({err, message: 'Unable to resend code due to server error'});
     }
 });
@@ -135,7 +135,7 @@ router.post('/addCard', async function(req, res){
         return res.status(200)
             .json({status: 'success', message: 'add card successfully', card: cardInfo});
     } catch (err){
-        res.status(500)
+        return res.status(500)
             .json({err, message: 'Unable to resend code due to server error'});
     }
 });
@@ -152,7 +152,7 @@ router.delete('/deleteCard/:card_source', async function(req, res){
         return res.status(200)
             .json({status: 'success', message: 'remove card successfully', card: cardInfo});
     } catch (err){
-        res.status(500)
+        return res.status(500)
             .json({err, message: 'Unable to resend code due to server error'});
     }
 });
@@ -218,14 +218,14 @@ router.get('/:id', async function(req, res){
                 }
             }
             const card_information = await stripeCustomer.getCardsByCustomerId(user.user.stripe_customer_id);
-            res.status(200).json({data: user, reservation_info, card_information, msg: 'User info was found'});
+            return res.status(200).json({data: user, reservation_info, card_information, msg: 'User info was found'});
         } else {
-            res.status(401)
+            return res.status(401)
                 .json({status: 'failed', message: 'Unauthorized action'});
         }
     } catch (err) {
         console.log(err);
-        res.status(500)
+        return res.status(500)
             .json({err, message: 'Unable to get user from database'})
     }
 });

@@ -26,7 +26,7 @@ router.put('/spot', async function(req, res){
         return res.status(200).json({status:'success', data:'spot lot updated'});
     } catch (err){
         console.log(err);
-        res.status(500)
+        return res.status(500)
             .json({err, status:'failed', data: 'Unable to make request to server'});
     }
 });
