@@ -22,26 +22,23 @@ router.put('/spot', async function(req, res){
         const previous_arrived_reservation = await reservationsModel.getArrivedBySpotHashAndLotId(spotInfo.secret, lotInfo.id);
         const previous_reserved_reservation = await reservationsModel.getReservedBySpotHashAndLotId(spotInfo.secret, lotInfo.id);
         const previous_parked_reservation = await reservationsModel.getParkedBySpotHashAndLotId(spotInfo.secret, lotInfo.id);
-        const previous_fulfilled_reservation = await reservationsModel.getFulfilledBySpotHashAndLotId(spotInfo.secret, lotInfo.id);
 
         let reservation_status = 'failed';
         let spot_update_status = 'failed';
-        const isReservedToArrived = previous_spot.length > 0 && previous_arrived_reservation.length>0 && spotInfo.spot_status==='OCCUPIED' && previous_spot[0].spot_status === 'RESERVED' && previous_arrived_reservation[0].status === 'ARRIVED';
-        const isReservedToParked = previous_spot.length > 0 && previous_reserved_reservation.length > 0 && spotInfo.spot_status==='OCCUPIED' && previous_spot[0].spot_status === 'RESERVED' && previous_reserved_reservation[0].status === 'RESERVED';
-        const isArrivedToExited = previous_spot.length > 0 && previous_parked_reservation.length>0 && spotInfo.spot_status==='UNOCCUPIED' && previous_spot[0].spot_status === 'OCCUPIED' && previous_parked_reservation[0].status === 'PARKED';
-        const isFulfilledSpotChange = previous_spot.length > 0 && previous_fulfilled_reservation.length>0 && spotInfo.spot_status==='UNOCCUPIED' && previous_spot[0].spot_status === 'OCCUPIED' && previous_fulfilled_reservation[0].status === 'FULFILLED';
-        const isViolationLeftSpotChange = previous_spot.length > 0 && spotInfo.spot_status==='UNOCCUPIED' && previous_spot[0].spot_status === 'VIOLATION';
-        const isViolationArriveSpotChange = previous_spot.length > 0 && spotInfo.spot_status==='VIOLATION';
-
-        const isUnoccupiedToParked = previous_spot.length > 0 && previous_spot[0].spot_status === 'UNOCCUPIED' && spotInfo.spot_status === 'OCCUPIED' && !isReservedToArrived && !isReservedToParked && !isArrivedToExited;
+        const is_arrived_to_parked = previous_spot.length > 0 && previous_arrived_reservation.length > 0 && spotInfo.spot_status==='OCCUPIED' && previous_spot[0].spot_status === 'RESERVED' && previous_arrived_reservation[0].status === 'ARRIVED';
+        const is_reserved_to_parked = previous_spot.length > 0 && previous_reserved_reservation.length > 0 && spotInfo.spot_status==='OCCUPIED' && previous_spot[0].spot_status === 'RESERVED' && previous_reserved_reservation[0].status === 'RESERVED';
+        const is_parked_to_exit = previous_spot.length > 0 && previous_parked_reservation.length > 0 && spotInfo.spot_status==='UNOCCUPIED' && previous_spot[0].spot_status === 'OCCUPIED' && previous_parked_reservation[0].status === 'PARKED';
+        const is_violation_to_exit = previous_spot.length > 0 && spotInfo.spot_status==='UNOCCUPIED' && previous_spot[0].spot_status === 'VIOLATION';
+        const is_violation = previous_spot.length > 0 && spotInfo.spot_status==='VIOLATION';
+        const is_unoccupied_to_parked = previous_spot.length > 0 && previous_spot[0].spot_status === 'UNOCCUPIED' && spotInfo.spot_status === 'OCCUPIED' && !is_arrived_to_parked && !is_reserved_to_parked && !is_parked_to_exit;
 
         const date = DateTime.local().toUTC();
-        if (isUnoccupiedToParked) {
+        if (is_unoccupied_to_parked) {
             // reservation updated in cloud vision server
             reservation_status = 'success';
             spot_update_status = await spotsModel.updateSpotStatus(spotInfo);
         }
-        else if (isReservedToArrived){
+        else if (is_arrived_to_parked){
             const reservation_info = {
                 parked_at: date.toSQL({includeOffset: false}),
                 status: 'PARKED',
@@ -49,7 +46,7 @@ router.put('/spot', async function(req, res){
             const status = await reservationsModel.updateById(previous_arrived_reservation[0].id, reservation_info);
             reservation_status = status.reservation_status;
             spot_update_status = await spotsModel.updateSpotStatus(spotInfo);
-        } else if (isReservedToParked) {
+        } else if (is_reserved_to_parked) {
             const reservation_info = {
                 arrived_at: date.toSQL({includeOffset: false}),
                 parked_at: date.toSQL({includeOffset: false}),
@@ -58,7 +55,7 @@ router.put('/spot', async function(req, res){
             const status = await reservationsModel.updateById(previous_reserved_reservation[0].id, reservation_info);
             reservation_status = status.reservation_status;
             spot_update_status = await spotsModel.updateSpotStatus(spotInfo);
-        } else if (isArrivedToExited){
+        } else if (is_parked_to_exit){
             const reservation_info = {
                 exited_at: date.toSQL({includeOffset: false}),
                 status: 'FULFILLED',
@@ -109,17 +106,15 @@ router.put('/spot', async function(req, res){
                     reservation_status = update_status.reservation_status;
                 }
             }
-        } else if (isFulfilledSpotChange){
-            reservation_status = 'success';
-            spot_update_status = await spotsModel.updateSpotStatus(spotInfo);
-        } else if (isViolationLeftSpotChange){
-            reservation_status = 'success';
-            spot_update_status = await spotsModel.updateSpotStatus(spotInfo);
-        } else if (isViolationArriveSpotChange) {
+        } else if (is_violation) {
             // TODO: dynamic reallocation
             reservation_status = 'success';
             spot_update_status = await spotsModel.updateSpotStatus(spotInfo);
+        } else if (is_violation_to_exit) {
+            reservation_status = 'success';
+            spot_update_status = await spotsModel.updateSpotStatus(spotInfo);
         }
+
         const isUpdateSuccess = spot_update_status.spot_status === 'success' && lot_status === 'success' && reservation_status === 'success';
         if (isUpdateSuccess){
             res.status(200).json({status:'success', data:'Parking lot updated'});
