@@ -8,19 +8,6 @@ const stripeCustomer = require('../../services/stripe/customers');
 
 describe('authentication endpoints', () => {
     describe('POST /api/user_authenticate', () => {
-        it('should return status 202 when the user is found', async () => {
-            usersModel.getByEmail = (email) => {
-                return [
-                    {
-                        id:1, first_name: 'test', last_name: 'test', email,
-                        password: '$2a$10$JhHw7tbG9bDdMKoSqjGa0.HoKSWKTZM37kShbE0VjfCPo0bGU4Phu', sign_up_type: 'NATIVE',
-                    },
-                ];
-            }
-
-            const res = await supertest(app).post('/api/user_authenticate/').send({userData: {email:'test@email.com', password: '123', login_in_type:'NATIVE'}});
-            expect(res.status).toBe(202);
-        });
 
         it('should return status 404 when password not match', async () => {
             usersModel.getByEmail = (email) => {
