@@ -92,9 +92,9 @@ async function updateById(id, modified_user){
         await db('users')
             .where({id})
             .update(modified_user);
-        return {uodate_status:'success'};
+        return {update_status:'success'};
     } catch (err) {
-        return {uodate_status:'failed'};
+        return {update_status:'failed'};
     }
 }
 

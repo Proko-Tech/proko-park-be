@@ -32,7 +32,7 @@ router.put('/', async function(req, res){
     const {id} = req.userInfo;
     try {
         const status = await userModel.updateById(id, req.body);
-        if (status.uodate_status) {
+        if (status.update_status) {
             return res.status(200).json({status: 'success'});
         } else {
             return res.status(401)
@@ -54,7 +54,7 @@ router.post('/check_password', async function(req, res){
         if (isPasswordMatched) {
             return res.status(200).json({message: 'Password matched'});
         } else {
-            return res.status(404).json({message: 'Password matched'});
+            return res.status(404).json({message: 'Password not matched'});
         }
     } catch (err){
         return res.status(500)
@@ -69,7 +69,7 @@ router.put('/attributes/password', async function(req, res){
             password: bcrypt.hashSync(req.body.password, null, null),
         };
         const result = await userModel.updateById(id, password_json);
-        if (result.uodate_status === 'success')
+        if (result.update_status === 'success')
             return res.status(200).json({message: 'Password matched'});
         else
             return res.status(404).json({message: 'Password reset failed'});
@@ -93,8 +93,8 @@ router.put('/attributes/verify_email', async function(req, res){
             is_verified: true,
         };
         const status = await userModel.updateById(id, update_json);
-        if (status.uodate_status==='success')
-            return res.status(200).json({message: 'Password matched'});
+        if (status.update_status==='success')
+            return res.status(200).json({message: 'Code matched'});
         else
             return res.status(404).json({message: 'Update failed'});
     } catch (err){
