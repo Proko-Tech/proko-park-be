@@ -26,6 +26,7 @@
     "ejs": "^3.1.6",
     "express": "^4.17.1",
     "express-rate-limit": "^5.2.6",
+    "googleapis": "^104.0.0",
     "helmet": "^4.2.0",
     "http-errors": "^1.8.0",
     "jsonwebtoken": "^8.5.1",

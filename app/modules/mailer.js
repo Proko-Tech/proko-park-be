@@ -1,18 +1,38 @@
 const nodemailer = require("nodemailer");
+const {google} = require('googleapis');
 const path = require('path');
 const ejs = require("ejs");
 require('dotenv').config();
 
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    auth: {
-        user: process.env.EMAILUSER, // generated ethereal user
-        pass: process.env.EMAILPASSWORD, // generated ethereal password
-    },
-    from: process.env.EMAILUSER,
+const OAuth2 = google.auth.OAuth2;
+
+const oauth2Client = new OAuth2(
+    process.env.CLIENT_ID,
+    process.env.CLIENT_SECRET,
+    process.env.REDIRECT_URL,
+);
+
+oauth2Client.setCredentials({
+    refresh_token: process.env.REFRESH_TOKEN,
 });
+
+const transporter = nodemailer.createTransport(
+    {
+        host: "smtp.gmail.com",
+        auth: {
+            type: "OAuth2",
+            user: process.env.EMAILUSER,
+            clientId: process.env.CLIENT_ID,
+            clientSecret: process.env.CLIENT_SECRET,
+            refreshToken: process.env.REFRESH_TOKEN,
+            accessToken: oauth2Client.getAccessToken(),
+        },
+        secure: true,
+    },
+    {
+        from: process.env.EMAILUSER,
+    },
+);
 
 const sendEmail = (info, callback) => {
     const d = new Date();
