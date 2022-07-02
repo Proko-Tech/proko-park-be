@@ -13,7 +13,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    
+
     env:
       HOST: ${{ secrets.HOST }}
       DATAPORT: ${{ secrets.DATAPORT }}
@@ -24,6 +24,10 @@ jobs:
       USERTOKENKEY: ${{ secrets.USERTOKENKEY }}
       EMAILUSER: ${{ secrets.EMAILUSER }}
       EMAILPASSWORD: ${{ secrets.EMAILPASSWORD }}
+      REFRESH_TOKEN: ${{ secrets.REFRESH_TOKEN }}
+      CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+      CLIENT_ID: ${{ secrets.CLIENT_ID }}
+      REDIRECT_URL: ${{ secrets.REDIRECT_URL }}
 
     strategy:
       matrix:
