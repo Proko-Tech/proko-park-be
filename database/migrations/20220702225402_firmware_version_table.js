@@ -1,7 +1,8 @@
 
 exports.up = function(knex) {
-    return knex.schema.createTable('firmware_version', (tbl)=>{
-        tbl.string('version').primary().notNullable();
+    return knex.schema.createTable('firmware_versions', (tbl)=>{
+        tbl.increments('id').primary();
+        tbl.string('version').unique().notNullable();
         tbl.text('ESP8266_url').notNullable();
         tbl.text('ESP32_url').notNullable();
         tbl.text('ESP8266_file_name').notNullable();
@@ -11,5 +12,5 @@ exports.up = function(knex) {
 };
 
 exports.down = function(knex) {
-    return knex.schema.dropTable('firmware_version');
+    return knex.schema.dropTable('firmware_versions');
 };
