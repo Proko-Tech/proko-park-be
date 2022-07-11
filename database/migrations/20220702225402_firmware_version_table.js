@@ -1,7 +1,7 @@
 
 exports.up = function(knex) {
     return knex.schema.createTable('firmware_versions', (tbl)=>{
-        tbl.increments('id').primary();
+        tbl.increments('id').unique().notNullable();
         tbl.string('version').unique().notNullable();
         tbl.text('ESP8266_url').notNullable();
         tbl.text('ESP32_url').notNullable();
