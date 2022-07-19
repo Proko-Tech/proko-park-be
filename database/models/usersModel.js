@@ -98,4 +98,12 @@ async function updateById(id, modified_user){
     }
 }
 
-module.exports = {getById, getByEmailAndSignupType, getByAppleUser, updateById, getAllById, getByEmail, insert};
+async function deleteById(id){
+    try {
+
+    } catch (err) {
+
+    }
+}
+
+module.exports = {getById, getByEmailAndSignupType, getByAppleUser, updateById, getAllById, getByEmail, insert, deleteById};
