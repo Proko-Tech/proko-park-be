@@ -99,7 +99,7 @@ async function updateById(id, modified_user){
 }
 
 /**
- * function that deletse user by id
+ * function that deletes user by id
  * @param id 
  * @returns {Promise<void>}
  */
