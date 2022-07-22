@@ -119,7 +119,6 @@ router.put('/spot', async function(req, res){
         if (is_update_success){
             return res.status(200).json({status:'success', data:'Parking lot updated'});
         } else {
-            console.log('not updated')
             return res.status(404)
                 .json({status:'failed', data: 'Parking lot not updated'});
         }
