@@ -242,6 +242,7 @@ router.delete('/deleteUser', async function(req, res){
     } catch (err) {
         return res.status(500)
         .json({err, message: 'Unable to delete user account due to server error'});
+    }
 });
 
 module.exports = router;
