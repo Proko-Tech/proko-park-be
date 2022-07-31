@@ -31,7 +31,7 @@ async function authorizeByCustomerAndSource(
     amount,
     description,
     stripeCustomerId,
-    sourceId
+    sourceId,
 ) {
     const charge = await stripe.charges.create({
         // Return a charge object

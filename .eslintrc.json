@@ -184,7 +184,8 @@
                 "tabWidth": 4,
                 "ignoreUrls": true,
                 "ignoreStrings": true,
-                "ignorePattern": ".(module|require)'"
+                "ignorePattern": ".(module|require)'",
+                "ignoreComments": true
             }
         ],
         "max-params": 0, // limits the number of parameters that can be used in the function declaration. (off by default)

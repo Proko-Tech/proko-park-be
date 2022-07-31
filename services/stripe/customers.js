@@ -22,7 +22,7 @@ async function getCardsByCustomerId(stripeCustomerId) {
 async function getCardByCustomerId(stripeCustomerId, sourceId) {
     const card = await stripe.customers.retrieveSource(
         stripeCustomerId,
-        sourceId
+        sourceId,
     );
     return card;
 }
@@ -49,7 +49,7 @@ async function addNewCardByCustomerId(cardSource, stripeCustomerId) {
 async function removeCardByCustomerId(cardId, stripeCustomerId) {
     const deleted = await stripe.customers.deleteSource(
         stripeCustomerId,
-        cardId
+        cardId,
     );
     return deleted;
 }
