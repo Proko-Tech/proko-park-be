@@ -6,13 +6,12 @@ const pick = require('../../utils/pick');
  * @param user
  * @returns {Promise<{user_status: string}>}
  */
-async function insert(user){
+async function insert(user) {
     try {
-        await db('users')
-            .insert(user);
-        return {user_status:'success'};
+        await db('users').insert(user);
+        return {user_status: 'success'};
     } catch (err) {
-        return {user_status:'failed'};
+        return {user_status: 'failed'};
     }
 }
 
@@ -22,9 +21,7 @@ async function insert(user){
  * @returns {Promise<void>}
  */
 async function getById(id) {
-    const result = await db('users')
-        .where({id})
-        .select('*');
+    const result = await db('users').where({id}).select('*');
     return result;
 }
 
@@ -33,10 +30,8 @@ async function getById(id) {
  * @param apple_user
  * @returns {Promise<void>}
  */
-async function getByAppleUser(apple_user){
-    const result = await db('users')
-        .where({apple_user})
-        .select('*');
+async function getByAppleUser(apple_user) {
+    const result = await db('users').where({apple_user}).select('*');
     return result;
 }
 
@@ -45,7 +40,7 @@ async function getByAppleUser(apple_user){
  * @param email
  * @returns {Promise<void>}
  */
-async function getByEmailAndSignupType(email, sign_up_type){
+async function getByEmailAndSignupType(email, sign_up_type) {
     const result = await db('users')
         .where({email})
         .andWhere({sign_up_type})
@@ -58,10 +53,8 @@ async function getByEmailAndSignupType(email, sign_up_type){
  * @param email
  * @returns {Promise<void>}
  */
-async function getByEmail(email){
-    const result = await db('users')
-        .where({email})
-        .select('*');
+async function getByEmail(email) {
+    const result = await db('users').where({email}).select('*');
     return result;
 }
 
@@ -72,12 +65,19 @@ async function getByEmail(email){
  * @param id
  * @returns {Promise<void>}
  */
-async function getAllById(id){
+async function getAllById(id) {
     const result = {};
-    const users = await db('users')
-        .where({id})
-        .select('*');
-    result.user = pick(users[0], ['id', 'first_name', 'last_name', 'email', 'phone_number', 'sign_up_type', 'is_verified', 'stripe_customer_id']);
+    const users = await db('users').where({id}).select('*');
+    result.user = pick(users[0], [
+        'id',
+        'first_name',
+        'last_name',
+        'email',
+        'phone_number',
+        'sign_up_type',
+        'is_verified',
+        'stripe_customer_id',
+    ]);
     return result;
 }
 
@@ -87,15 +87,21 @@ async function getAllById(id){
  * @param modified_user
  * @returns {Promise<{user_status: string}>}
  */
-async function updateById(id, modified_user){
+async function updateById(id, modified_user) {
     try {
-        await db('users')
-            .where({id})
-            .update(modified_user);
-        return {update_status:'success'};
+        await db('users').where({id}).update(modified_user);
+        return {update_status: 'success'};
     } catch (err) {
-        return {update_status:'failed'};
+        return {update_status: 'failed'};
     }
 }
 
-module.exports = {getById, getByEmailAndSignupType, getByAppleUser, updateById, getAllById, getByEmail, insert};
+module.exports = {
+    getById,
+    getByEmailAndSignupType,
+    getByAppleUser,
+    updateById,
+    getAllById,
+    getByEmail,
+    insert,
+};

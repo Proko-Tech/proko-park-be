@@ -7,15 +7,15 @@ const {DateTime} = require('luxon');
  * @param spot_infos
  * @returns {Promise<{spot_status: string}>}
  */
-async function updateSpotStatus(spot_info){
+async function updateSpotStatus(spot_info) {
     try {
         await db('spots')
             .where({secret: spot_info.secret})
             .andWhere({lot_id: spot_info.lot_id})
             .update(spot_info);
-        return {spot_status:'success'};
+        return {spot_status: 'success'};
     } catch (err) {
-        return {spot_status:'failed'};
+        return {spot_status: 'failed'};
     }
 }
 
@@ -24,10 +24,8 @@ async function updateSpotStatus(spot_info){
  * @param lot_id
  * @returns {Promise<void>}
  */
-async function getSpotsByLotId(lot_id){
-    const result = await db('spots')
-        .where({lot_id})
-        .select('*');
+async function getSpotsByLotId(lot_id) {
+    const result = await db('spots').where({lot_id}).select('*');
     return result;
 }
 
@@ -36,7 +34,7 @@ async function getSpotsByLotId(lot_id){
  * @param lot_id
  * @returns {Promise<void>}
  */
-async function getUnoccupiedByLotId(lot_id){
+async function getUnoccupiedByLotId(lot_id) {
     const result = await db('spots')
         .where({lot_id})
         .andWhere({spot_status: 'UNOCCUPIED'})
@@ -50,7 +48,7 @@ async function getUnoccupiedByLotId(lot_id){
  * @param lot_id
  * @returns {Promise<void>}
  */
-async function getUnoccupiedElectricByLotId(lot_id){
+async function getUnoccupiedElectricByLotId(lot_id) {
     const result = await db('spots')
         .where({lot_id})
         .andWhere({spot_status: 'UNOCCUPIED'})
@@ -65,7 +63,7 @@ async function getUnoccupiedElectricByLotId(lot_id){
  * @param lot_id
  * @returns {Promise<void>}
  */
-async function getUnoccupiedReservableByLotId(lot_id){
+async function getUnoccupiedReservableByLotId(lot_id) {
     const result = await db('spots')
         .where({lot_id})
         .andWhere({spot_status: 'UNOCCUPIED'})
@@ -80,7 +78,7 @@ async function getUnoccupiedReservableByLotId(lot_id){
  * @param lot_id
  * @returns {Promise<void>}
  */
-async function getUnoccupiedNonReservableByLotId(lot_id){
+async function getUnoccupiedNonReservableByLotId(lot_id) {
     const result = await db('spots')
         .where({lot_id})
         .andWhere({spot_status: 'UNOCCUPIED'})
@@ -95,7 +93,7 @@ async function getUnoccupiedNonReservableByLotId(lot_id){
  * @param lot_id
  * @returns {Promise<void>}
  */
-async function getUnoccupiedNotElectricAndReservableByLotId(lot_id){
+async function getUnoccupiedNotElectricAndReservableByLotId(lot_id) {
     const result = await db('spots')
         .where({lot_id})
         .andWhere({spot_status: 'UNOCCUPIED'})
@@ -111,7 +109,7 @@ async function getUnoccupiedNotElectricAndReservableByLotId(lot_id){
  * @param lot_id
  * @returns {Promise<void>}
  */
-async function getUnoccupiedNotElectricByLotId(lot_id){
+async function getUnoccupiedNotElectricByLotId(lot_id) {
     const result = await db('spots')
         .where({lot_id})
         .andWhere({spot_status: 'UNOCCUPIED'})
@@ -127,10 +125,8 @@ async function getUnoccupiedNotElectricByLotId(lot_id){
  * @param id
  * @returns {Promise<void>}
  */
-async function getById(id){
-    const result = await db('spots')
-        .where({id})
-        .select('*');
+async function getById(id) {
+    const result = await db('spots').where({id}).select('*');
     return result;
 }
 
@@ -139,33 +135,50 @@ async function getById(id){
  * @param spot_status
  * @returns {Promise<void>}
  */
-async function getBySecret(secret){
-    const result = await db('spots')
-        .where({secret})
-        .select('*');
+async function getBySecret(secret) {
+    const result = await db('spots').where({secret}).select('*');
     return result;
 }
-
 
 /**
  * batch mark alive status for spots
  * @param spots
  * @returns {Promise<{spot_status: string}>}
  */
-async function batchUpdate(spots){
+async function batchUpdate(spots) {
     try {
         await spots.map(async (spot) => {
-            const updated_date = DateTime.fromISO(new Date(spot.updated_at).toISOString()).toUTC().toSQL({includeOffset: false});
-            const update_body = pick(spot, ['alive_status', 'firmware_version', 'last_distance', 'cam_alive_status', 'empty_distance_threshold']);
+            const updated_date = DateTime.fromISO(
+                new Date(spot.updated_at).toISOString(),
+            )
+                .toUTC()
+                .toSQL({includeOffset: false});
+            const update_body = pick(spot, [
+                'alive_status',
+                'firmware_version',
+                'last_distance',
+                'cam_alive_status',
+                'empty_distance_threshold',
+            ]);
             update_body.updated_at = updated_date;
-            await db('spots')
-                .update(update_body)
-                .where({secret: spot.secret});
+            await db('spots').update(update_body).where({secret: spot.secret});
         });
-        return {spot_status:'success'};
+        return {spot_status: 'success'};
     } catch (err) {
-        return {spot_status:'failed'};
+        return {spot_status: 'failed'};
     }
 }
 
-module.exports={updateSpotStatus, getSpotsByLotId, getUnoccupiedByLotId, getById, getBySecret, getUnoccupiedElectricByLotId, getUnoccupiedNotElectricAndReservableByLotId, batchUpdate, getUnoccupiedReservableByLotId, getUnoccupiedNonReservableByLotId, getUnoccupiedNotElectricByLotId};
+module.exports = {
+    updateSpotStatus,
+    getSpotsByLotId,
+    getUnoccupiedByLotId,
+    getById,
+    getBySecret,
+    getUnoccupiedElectricByLotId,
+    getUnoccupiedNotElectricAndReservableByLotId,
+    batchUpdate,
+    getUnoccupiedReservableByLotId,
+    getUnoccupiedNonReservableByLotId,
+    getUnoccupiedNotElectricByLotId,
+};

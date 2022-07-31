@@ -12,13 +12,26 @@ describe('authentication endpoints', () => {
             usersModel.getByEmail = (email) => {
                 return [
                     {
-                        id:1, first_name: 'test', last_name: 'test', email,
-                        password: '$2a$10$JhHw7tbG9bDdMKoSqjGa0.HoKSWKTZM37kShbE0VjfCPo0bGU4Phu', sign_up_type: 'NATIVE',
+                        id: 1,
+                        first_name: 'test',
+                        last_name: 'test',
+                        email,
+                        password:
+                            '$2a$10$JhHw7tbG9bDdMKoSqjGa0.HoKSWKTZM37kShbE0VjfCPo0bGU4Phu',
+                        sign_up_type: 'NATIVE',
                     },
                 ];
-            }
+            };
 
-            const res = await supertest(app).post('/api/user_authenticate/').send({userData: {email:'test@email.com', password: '123', login_in_type:'NATIVE'}});
+            const res = await supertest(app)
+                .post('/api/user_authenticate/')
+                .send({
+                    userData: {
+                        email: 'test@email.com',
+                        password: '123',
+                        login_in_type: 'NATIVE',
+                    },
+                });
             expect(res.status).toBe(202);
         });
 
@@ -27,21 +40,39 @@ describe('authentication endpoints', () => {
                 return [
                     {
                         email,
-                        password: '$2a$10$JhHw7tbG9bDdMKoSqjGa0.HoKSWKTZM37kShbE0VjfCPo0bGU4Phu', sign_up_type: 'NATIVE',
+                        password:
+                            '$2a$10$JhHw7tbG9bDdMKoSqjGa0.HoKSWKTZM37kShbE0VjfCPo0bGU4Phu',
+                        sign_up_type: 'NATIVE',
                     },
                 ];
-            }
+            };
 
-            const res = await supertest(app).post('/api/user_authenticate/').send({userData: {email:'test@email.com', password: 'fasdfsa', login_in_type:'NATIVE'}});
+            const res = await supertest(app)
+                .post('/api/user_authenticate/')
+                .send({
+                    userData: {
+                        email: 'test@email.com',
+                        password: 'fasdfsa',
+                        login_in_type: 'NATIVE',
+                    },
+                });
             expect(res.status).toBe(404);
         });
 
         it('should return status 404 when email not found', async () => {
             usersModel.getByEmail = () => {
                 return [];
-            }
+            };
 
-            const res = await supertest(app).post('/api/user_authenticate/').send({userData: {email:'test@email.com', password: 'fasdfsa', login_in_type:'NATIVE'}});
+            const res = await supertest(app)
+                .post('/api/user_authenticate/')
+                .send({
+                    userData: {
+                        email: 'test@email.com',
+                        password: 'fasdfsa',
+                        login_in_type: 'NATIVE',
+                    },
+                });
             expect(res.status).toBe(404);
         });
 
@@ -50,12 +81,22 @@ describe('authentication endpoints', () => {
                 return [
                     {
                         email,
-                        password: '$2a$10$JhHw7tbG9bDdMKoSqjGa0.HoKSWKTZM37kShbE0VjfCPo0bGU4Phu', sign_up_type: 'FACEBOOK',
+                        password:
+                            '$2a$10$JhHw7tbG9bDdMKoSqjGa0.HoKSWKTZM37kShbE0VjfCPo0bGU4Phu',
+                        sign_up_type: 'FACEBOOK',
                     },
                 ];
-            }
+            };
 
-            const res = await supertest(app).post('/api/user_authenticate/').send({userData: {email:'test@email.com', password: 'fasdfsa', login_in_type:'NATIVE'}});
+            const res = await supertest(app)
+                .post('/api/user_authenticate/')
+                .send({
+                    userData: {
+                        email: 'test@email.com',
+                        password: 'fasdfsa',
+                        login_in_type: 'NATIVE',
+                    },
+                });
             expect(res.status).toBe(401);
         });
 
@@ -64,19 +105,37 @@ describe('authentication endpoints', () => {
                 return [
                     {
                         email,
-                        password: '$2a$10$JhHw7tbG9bDdMKoSqjGa0.HoKSWKTZM37kShbE0VjfCPo0bGU4Phu', sign_up_type: 'GOOGLE',
+                        password:
+                            '$2a$10$JhHw7tbG9bDdMKoSqjGa0.HoKSWKTZM37kShbE0VjfCPo0bGU4Phu',
+                        sign_up_type: 'GOOGLE',
                     },
                 ];
-            }
+            };
 
-            const res = await supertest(app).post('/api/user_authenticate/').send({userData: {email:'test@email.com', password: 'fasdfsa', login_in_type:'NATIVE'}});
+            const res = await supertest(app)
+                .post('/api/user_authenticate/')
+                .send({
+                    userData: {
+                        email: 'test@email.com',
+                        password: 'fasdfsa',
+                        login_in_type: 'NATIVE',
+                    },
+                });
             expect(res.status).toBe(401);
         });
     });
 
     describe('/api/user_authenticate/social', () => {
         it('should return status 401 when login type is native', async () => {
-            const res = await supertest(app).post('/api/user_authenticate/social').send({userData: {email:'test@email.com', password: 'fasdfsa', login_in_type:'NATIVE'}});
+            const res = await supertest(app)
+                .post('/api/user_authenticate/social')
+                .send({
+                    userData: {
+                        email: 'test@email.com',
+                        password: 'fasdfsa',
+                        login_in_type: 'NATIVE',
+                    },
+                });
             expect(res.status).toBe(401);
         });
 
@@ -85,25 +144,55 @@ describe('authentication endpoints', () => {
                 return [
                     {
                         email,
-                        password: '$2a$10$JhHw7tbG9bDdMKoSqjGa0.HoKSWKTZM37kShbE0VjfCPo0bGU4Phu', sign_up_type: 'GOOGLE',
+                        password:
+                            '$2a$10$JhHw7tbG9bDdMKoSqjGa0.HoKSWKTZM37kShbE0VjfCPo0bGU4Phu',
+                        sign_up_type: 'GOOGLE',
                     },
                 ];
-            }
-            const res = await supertest(app).post('/api/user_authenticate/social').send({userData: {email:'test@email.com', password: 'fasdfsa', login_in_type:'GOOGLE'}});
+            };
+            const res = await supertest(app)
+                .post('/api/user_authenticate/social')
+                .send({
+                    userData: {
+                        email: 'test@email.com',
+                        password: 'fasdfsa',
+                        login_in_type: 'GOOGLE',
+                    },
+                });
             expect(res.status).toBe(202);
         });
 
         it('should return status 202 when user not found but successfully inserted', async () => {
-            usersModel.getByEmail = jest.fn()
-                .mockImplementationOnce(() => {return []})
-                .mockImplementationOnce(() => {return [{id:1, email: 'test@email.com', password: 'fasdfsa', sign_up_type: 'GOOGLE'}]});
+            usersModel.getByEmail = jest
+                .fn()
+                .mockImplementationOnce(() => {
+                    return [];
+                })
+                .mockImplementationOnce(() => {
+                    return [
+                        {
+                            id: 1,
+                            email: 'test@email.com',
+                            password: 'fasdfsa',
+                            sign_up_type: 'GOOGLE',
+                        },
+                    ];
+                });
             stripeCustomer.create = () => {
-                return {id:'stripeId'}
-            }
+                return {id: 'stripeId'};
+            };
             usersModel.insert = () => {
-                return {user_status:'success'}
-            }
-            const res = await supertest(app).post('/api/user_authenticate/social').send({userData: {email:'test@email.com', password: 'fasdfsa', login_in_type:'GOOGLE'}});
+                return {user_status: 'success'};
+            };
+            const res = await supertest(app)
+                .post('/api/user_authenticate/social')
+                .send({
+                    userData: {
+                        email: 'test@email.com',
+                        password: 'fasdfsa',
+                        login_in_type: 'GOOGLE',
+                    },
+                });
             expect(res.status).toBe(202);
         });
     });

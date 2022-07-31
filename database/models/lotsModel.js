@@ -9,11 +9,8 @@ const spotsModel = require('./spotsModel');
  * @param hash
  * @returns {Promise<void>}
  */
-async function getByIdAndHash(id, hash){
-    const result = await db('lots')
-        .where({id})
-        .andWhere({hash})
-        .select('*');
+async function getByIdAndHash(id, hash) {
+    const result = await db('lots').where({id}).andWhere({hash}).select('*');
     return result;
 }
 
@@ -22,28 +19,26 @@ async function getByIdAndHash(id, hash){
  * @param lot_info
  * @returns {Promise<{lot_status: string}>}
  */
-async function markLotAliveStatusByIdAndHash(lot_info){
+async function markLotAliveStatusByIdAndHash(lot_info) {
     try {
         const date = DateTime.local().toUTC().toSQL({includeOffset: false});
         await db('lots')
             .where({hash: lot_info.hash})
             .andWhere({id: lot_info.id})
             .update({alive_status: true, updated_at: date});
-        return {lot_status:'success'};
+        return {lot_status: 'success'};
     } catch (err) {
-        return {lot_status:'failed'};
+        return {lot_status: 'failed'};
     }
-};
+}
 
 /**
  * get lot and spots json by hash
  * @param hash
  * @returns {Promise<void>}
  */
-async function getLotAndSpotsByHash(hash){
-    const result = await db('lots')
-        .where({hash})
-        .select('*');
+async function getLotAndSpotsByHash(hash) {
+    const result = await db('lots').where({hash}).select('*');
     result[0].spots = await spotsModel.getSpotsByLotId(result[0].id);
     return result[0];
 }
@@ -53,11 +48,9 @@ async function getLotAndSpotsByHash(hash){
  * @param id
  * @returns {Promise<{available_spots: *}>}
  */
-async function getAndUnoccupiedSpotNumsById(id){
-    const lot = await db('lots')
-        .where({id})
-        .select('*');
-    if (lot.length>0) {
+async function getAndUnoccupiedSpotNumsById(id) {
+    const lot = await db('lots').where({id}).select('*');
+    if (lot.length > 0) {
         const spots = await spotsModel.getUnoccupiedByLotId(lot[0].id);
         const result = {
             ...lot[0],
@@ -74,11 +67,9 @@ async function getAndUnoccupiedSpotNumsById(id){
  * @param id
  * @returns {Promise<{available_spots: *}>}
  */
-async function getAndUnoccupiedElectricSpotNumsById(id){
-    const lot = await db('lots')
-        .where({id})
-        .select('*');
-    if (lot.length>0) {
+async function getAndUnoccupiedElectricSpotNumsById(id) {
+    const lot = await db('lots').where({id}).select('*');
+    if (lot.length > 0) {
         const spots = await spotsModel.getUnoccupiedElectricByLotId(lot[0].id);
         const result = {
             ...lot[0],
@@ -95,12 +86,12 @@ async function getAndUnoccupiedElectricSpotNumsById(id){
  * @param id
  * @returns {Promise<null|{available_spots: *}>}
  */
-async function getAndReservableSpotNumsById(id){
-    const lot = await db('lots')
-        .where({id})
-        .select('*');
-    if (lot.length>0) {
-        const spots = await spotsModel.getUnoccupiedReservableByLotId(lot[0].id);
+async function getAndReservableSpotNumsById(id) {
+    const lot = await db('lots').where({id}).select('*');
+    if (lot.length > 0) {
+        const spots = await spotsModel.getUnoccupiedReservableByLotId(
+            lot[0].id,
+        );
         return spots.length;
     } else {
         return null;
@@ -112,12 +103,12 @@ async function getAndReservableSpotNumsById(id){
  * @param id
  * @returns {Promise<null|{available_spots: *}>}
  */
-async function getAndNonReservableSpotNumsById(id){
-    const lot = await db('lots')
-        .where({id})
-        .select('*');
-    if (lot.length>0) {
-        const spots = await spotsModel.getUnoccupiedNonReservableByLotId(lot[0].id);
+async function getAndNonReservableSpotNumsById(id) {
+    const lot = await db('lots').where({id}).select('*');
+    if (lot.length > 0) {
+        const spots = await spotsModel.getUnoccupiedNonReservableByLotId(
+            lot[0].id,
+        );
         return spots.length;
     } else {
         return null;
@@ -129,10 +120,8 @@ async function getAndNonReservableSpotNumsById(id){
  * @param id
  * @returns {Promise<void>}
  */
-async function getById(id){
-    const result = await db('lots')
-        .where({id})
-        .select('*');
+async function getById(id) {
+    const result = await db('lots').where({id}).select('*');
     return result;
 }
 
@@ -141,26 +130,31 @@ async function getById(id){
  * @param id
  * @returns {Promise<unknown[]>}
  */
-async function getClosestByLatLong(lat, long){
+async function getClosestByLatLong(lat, long) {
     const lots = await db('lots')
-        .where('lat', '<=', lat+0.02)
-        .andWhere('lat', '>=', lat-0.02)
-        .andWhere('long', '<=', long+0.02)
-        .andWhere('long', '>=', long-0.02)
+        .where('lat', '<=', lat + 0.02)
+        .andWhere('lat', '>=', lat - 0.02)
+        .andWhere('long', '<=', long + 0.02)
+        .andWhere('long', '>=', long - 0.02)
         .select('*');
-    const result = await Promise.all(lots.map(async (lot)=> {
-        const spots = await spotsModel.getUnoccupiedByLotId(lot.id);
-        const electric_spots = await spotsModel.getUnoccupiedElectricByLotId(lot.id);
-        const reservable_spots = await spotsModel.getUnoccupiedReservableByLotId(lot.id);
-        const lot_info = {
-            ...lot,
-            available_spots: spots.length,
-            available_electric_spots: electric_spots.length,
-            available_reservable_spots: reservable_spots.length,
-            available_non_reservable_spots: spots.length - reservable_spots.length,
-        };
-        return lot_info;
-    }));
+    const result = await Promise.all(
+        lots.map(async (lot) => {
+            const spots = await spotsModel.getUnoccupiedByLotId(lot.id);
+            const electric_spots =
+                await spotsModel.getUnoccupiedElectricByLotId(lot.id);
+            const reservable_spots =
+                await spotsModel.getUnoccupiedReservableByLotId(lot.id);
+            const lot_info = {
+                ...lot,
+                available_spots: spots.length,
+                available_electric_spots: electric_spots.length,
+                available_reservable_spots: reservable_spots.length,
+                available_non_reservable_spots:
+                    spots.length - reservable_spots.length,
+            };
+            return lot_info;
+        }),
+    );
     return result;
 }
 
@@ -174,20 +168,36 @@ async function getByAlikeNameOrAddress(payload) {
         .whereRaw('name LIKE ?', payload)
         .orWhereRaw('address LIKE ?', payload)
         .select('*');
-    const result = await Promise.all(lots.map(async (lot)=> {
-        const spots = await spotsModel.getUnoccupiedByLotId(lot.id);
-        const electric_spots = await spotsModel.getUnoccupiedElectricByLotId(lot.id);
-        const reservable_spots = await spotsModel.getUnoccupiedReservableByLotId(lot.id);
-        const lot_info = {
-            ...lot,
-            available_spots: spots.length,
-            available_electric_spots: electric_spots.length,
-            available_reservable_spots: reservable_spots.length,
-            available_non_reservable_spots: spots.length - reservable_spots.length,
-        };
-        return lot_info;
-    }));
+    const result = await Promise.all(
+        lots.map(async (lot) => {
+            const spots = await spotsModel.getUnoccupiedByLotId(lot.id);
+            const electric_spots =
+                await spotsModel.getUnoccupiedElectricByLotId(lot.id);
+            const reservable_spots =
+                await spotsModel.getUnoccupiedReservableByLotId(lot.id);
+            const lot_info = {
+                ...lot,
+                available_spots: spots.length,
+                available_electric_spots: electric_spots.length,
+                available_reservable_spots: reservable_spots.length,
+                available_non_reservable_spots:
+                    spots.length - reservable_spots.length,
+            };
+            return lot_info;
+        }),
+    );
     return result;
 }
 
-module.exports={getByIdAndHash, markLotAliveStatusByIdAndHash, getLotAndSpotsByHash, getAndUnoccupiedSpotNumsById, getAndUnoccupiedElectricSpotNumsById, getAndReservableSpotNumsById, getAndNonReservableSpotNumsById, getById, getClosestByLatLong, getByAlikeNameOrAddress};
+module.exports = {
+    getByIdAndHash,
+    markLotAliveStatusByIdAndHash,
+    getLotAndSpotsByHash,
+    getAndUnoccupiedSpotNumsById,
+    getAndUnoccupiedElectricSpotNumsById,
+    getAndReservableSpotNumsById,
+    getAndNonReservableSpotNumsById,
+    getById,
+    getClosestByLatLong,
+    getByAlikeNameOrAddress,
+};

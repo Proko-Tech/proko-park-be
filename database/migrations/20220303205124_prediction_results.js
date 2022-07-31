@@ -1,6 +1,5 @@
-
 exports.up = function(knex) {
-    return knex.schema.createTable('prediction_results', (tbl)=>{
+    return knex.schema.createTable('prediction_results', (tbl) => {
         tbl.increments('id').unique().notNullable();
         tbl.text('image_url').notNullable();
         tbl.boolean('is_car_prediction').notNullable();

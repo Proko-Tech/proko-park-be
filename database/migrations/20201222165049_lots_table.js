@@ -1,6 +1,5 @@
-
 exports.up = function(knex) {
-    return knex.schema.createTable('lots', (tbl)=>{
+    return knex.schema.createTable('lots', (tbl) => {
         tbl.increments('id').unique().notNullable();
         tbl.text('name').notNullable();
         tbl.text('address').notNullable();
@@ -12,7 +11,8 @@ exports.up = function(knex) {
         tbl.text('hash').notNullable();
         tbl.boolean('alive_status').notNullable();
         tbl.decimal('price_per_hour').notNullable();
-        tbl.timestamps(true,true);// creates created_at column and updated_at column
+        // creates created_at column and updated_at column
+        tbl.timestamps(true, true);
     });
 };
 

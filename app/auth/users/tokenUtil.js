@@ -6,14 +6,18 @@ const jwt = require('jsonwebtoken');
  * @param token
  * @returns {Promise<authData>}
  */
-async function validateToken(token){
-    return await jwt.verify(token, process.env.USERTOKENKEY, async function(err, authData) {
-        if (err) {
-            console.log(err);
-        } else {
-            return authData;
-        }
-    });
+async function validateToken(token) {
+    return await jwt.verify(
+        token,
+        process.env.USERTOKENKEY,
+        async function(err, authData) {
+            if (err) {
+                console.log(err);
+            } else {
+                return authData;
+            }
+        },
+    );
 }
 
 /**
@@ -21,10 +25,9 @@ async function validateToken(token){
  * @param spotInfo
  * @returns {Promise<string*>}
  */
-async function generateToken(userInfo){
+async function generateToken(userInfo) {
     return jwt.sign({userInfo}, process.env.USERTOKENKEY);
 }
-
 
 module.exports = {
     validateToken,
