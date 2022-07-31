@@ -67,8 +67,12 @@ exports.up = function(knex) {
         tbl.text('make');
         tbl.text('model');
         tbl.text('color');
-        tbl.enum('license_issued_state', license_issued_states_enum, 
-            {useNative: true, enumName:'sign_up_type_enum'}).notNullable().index();
+        tbl.enum('license_issued_state', license_issued_states_enum, {
+            useNative: true,
+            enumName: 'sign_up_type_enum',
+        })
+            .notNullable()
+            .index();
     });
 };
 

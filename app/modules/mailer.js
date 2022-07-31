@@ -1,7 +1,7 @@
-const nodemailer = require("nodemailer");
+const nodemailer = require('nodemailer');
 const {google} = require('googleapis');
 const path = require('path');
-const ejs = require("ejs");
+const ejs = require('ejs');
 require('dotenv').config();
 
 const OAuth2 = google.auth.OAuth2;
@@ -18,9 +18,9 @@ oauth2Client.setCredentials({
 
 const transporter = nodemailer.createTransport(
     {
-        host: "smtp.gmail.com",
+        host: 'smtp.gmail.com',
         auth: {
-            type: "OAuth2",
+            type: 'OAuth2',
             user: process.env.EMAILUSER,
             clientId: process.env.CLIENT_ID,
             clientSecret: process.env.CLIENT_SECRET,
@@ -37,129 +37,166 @@ const transporter = nodemailer.createTransport(
 const sendEmail = (info, callback) => {
     const d = new Date();
     // setup email data with unicode symbols
-    ejs.renderFile(path.join(__dirname, '..','views/EmailVerify.ejs'), {info}, function(err, data) {
-        if (err) {
-            console.log(err);
-        } else {
-            const mailOptions = {
-                from: process.env.EMAILUSER,
-                to: info.email,
-                subject: "Proko Park: Please verify your account",
-                html: data,
-            };
-            transporter.sendMail(mailOptions, function(error, info) {
-                if (error) {
-                    console.log(error);
-                    callback({
-                        status: false,
-                        message: "EMAIL SEND FAIL",
-                    });
-                } else {
-                    // console.log('Email sent: ' + info.response);
-                    callback({
-                        status: true,
-                        message: "EMAIL SENT",
-                    });
-                }
-            });
-        }
-    });
+    ejs.renderFile(
+        path.join(__dirname, '..', 'views/EmailVerify.ejs'),
+        {info},
+        function(err, data) {
+            if (err) {
+                console.log(err);
+            } else {
+                const mailOptions = {
+                    from: process.env.EMAILUSER,
+                    to: info.email,
+                    subject: 'Proko Park: Please verify your account',
+                    html: data,
+                };
+                transporter.sendMail(mailOptions, function(error, info) {
+                    if (error) {
+                        console.log(error);
+                        callback({
+                            status: false,
+                            message: 'EMAIL SEND FAIL',
+                        });
+                    } else {
+                        // console.log('Email sent: ' + info.response);
+                        callback({
+                            status: true,
+                            message: 'EMAIL SENT',
+                        });
+                    }
+                });
+            }
+        },
+    );
 };
 
-const sendReservationConfirmation = (lot, vehicle, card, receiverEmail, firstName, callback) => {
+const sendReservationConfirmation = (
+    lot,
+    vehicle,
+    card,
+    receiverEmail,
+    firstName,
+    callback,
+) => {
     const d = new Date();
     // setup email data with unicode symbols
-    ejs.renderFile(path.join(__dirname, '..','views/ReservationConfirmation.ejs'), {lot, vehicle, card, firstName}, function(err, data) {
-        if (err) {
-            console.log(err);
-        } else {
-            const mailOptions = {
-                from: process.env.EMAILUSER,
-                to: receiverEmail,
-                subject: "Proko Park: Reservation Confirmation",
-                html: data,
-            };
-            transporter.sendMail(mailOptions, function(error, info) {
-                if (error) {
-                    console.log(error);
-                    callback({
-                        status: false,
-                        message: "EMAIL SEND FAIL",
-                    });
-                } else {
-                    // console.log('Email sent: ' + info.response);
-                    callback({
-                        status: true,
-                        message: "EMAIL SENT",
-                    });
-                }
-            });
-        }
-    });
+    ejs.renderFile(
+        path.join(__dirname, '..', 'views/ReservationConfirmation.ejs'),
+        {lot, vehicle, card, firstName},
+        function(err, data) {
+            if (err) {
+                console.log(err);
+            } else {
+                const mailOptions = {
+                    from: process.env.EMAILUSER,
+                    to: receiverEmail,
+                    subject: 'Proko Park: Reservation Confirmation',
+                    html: data,
+                };
+                transporter.sendMail(mailOptions, function(error, info) {
+                    if (error) {
+                        console.log(error);
+                        callback({
+                            status: false,
+                            message: 'EMAIL SEND FAIL',
+                        });
+                    } else {
+                        // console.log('Email sent: ' + info.response);
+                        callback({
+                            status: true,
+                            message: 'EMAIL SENT',
+                        });
+                    }
+                });
+            }
+        },
+    );
 };
 
-const sendReceipt = (lot, vehicle, card, receiverEmail, first_name, amount, time, callback) => {
+const sendReceipt = (
+    lot,
+    vehicle,
+    card,
+    receiverEmail,
+    first_name,
+    amount,
+    time,
+    callback,
+) => {
     const d = new Date();
     // setup email data with unicode symbols
-    ejs.renderFile(path.join(__dirname, '..','views/Receipt.ejs'), {lot, vehicle, card, first_name, amount, time}, function(err, data) {
-        if (err) {
-            console.log(err);
-        } else {
-            const mailOptions = {
-                from: process.env.EMAILUSER,
-                to: receiverEmail,
-                subject: "Proko Park: Receipt for a recent parking session",
-                html: data,
-            };
-            transporter.sendMail(mailOptions, function(error, info) {
-                if (error) {
-                    console.log(error);
-                    callback({
-                        status: false,
-                        message: "EMAIL SEND FAIL",
-                    });
-                } else {
-                    // console.log('Email sent: ' + info.response);
-                    callback({
-                        status: true,
-                        message: "EMAIL SENT",
-                    });
-                }
-            });
-        }
-    });
+    ejs.renderFile(
+        path.join(__dirname, '..', 'views/Receipt.ejs'),
+        {lot, vehicle, card, first_name, amount, time},
+        function(err, data) {
+            if (err) {
+                console.log(err);
+            } else {
+                const mailOptions = {
+                    from: process.env.EMAILUSER,
+                    to: receiverEmail,
+                    subject: 'Proko Park: Receipt for a recent parking session',
+                    html: data,
+                };
+                transporter.sendMail(mailOptions, function(error, info) {
+                    if (error) {
+                        console.log(error);
+                        callback({
+                            status: false,
+                            message: 'EMAIL SEND FAIL',
+                        });
+                    } else {
+                        // console.log('Email sent: ' + info.response);
+                        callback({
+                            status: true,
+                            message: 'EMAIL SENT',
+                        });
+                    }
+                });
+            }
+        },
+    );
 };
 
 const sendCoownVehicleInvitation = (user, inviter, vehicle, callback) => {
     const d = new Date();
     // setup email data with unicode symbols
-    ejs.renderFile(path.join(__dirname, '..','views/CoownVehicleInvite.ejs'), {user, inviter, vehicle}, function(err, data) {
-        if (err) {
-            console.log(err);
-        } else {
-            const mailOptions = {
-                from: process.env.EMAILUSER,
-                to: inviter.email,
-                subject: "Proko Park: You are invited to co-own a vehicle",
-                html: data,
-            };
-            transporter.sendMail(mailOptions, function(error, info) {
-                if (error) {
-                    console.log(error);
-                    callback({
-                        status: false,
-                        message: "EMAIL SEND FAIL",
-                    });
-                } else {
-                    // console.log('Email sent: ' + info.response);
-                    callback({
-                        status: true,
-                        message: "EMAIL SENT",
-                    });
-                }
-            });
-        }
-    });
+    ejs.renderFile(
+        path.join(__dirname, '..', 'views/CoownVehicleInvite.ejs'),
+        {user, inviter, vehicle},
+        function(err, data) {
+            if (err) {
+                console.log(err);
+            } else {
+                const mailOptions = {
+                    from: process.env.EMAILUSER,
+                    to: inviter.email,
+                    subject: 'Proko Park: You are invited to co-own a vehicle',
+                    html: data,
+                };
+                transporter.sendMail(mailOptions, function(error, info) {
+                    if (error) {
+                        console.log(error);
+                        callback({
+                            status: false,
+                            message: 'EMAIL SEND FAIL',
+                        });
+                    } else {
+                        // console.log('Email sent: ' + info.response);
+                        callback({
+                            status: true,
+                            message: 'EMAIL SENT',
+                        });
+                    }
+                });
+            }
+        },
+    );
 };
 
-module.exports = {sendEmail, sendReservationConfirmation, sendReceipt, sendCoownVehicleInvitation};
+module.exports = {
+    sendEmail,
+    sendReservationConfirmation,
+    sendReceipt,
+    sendCoownVehicleInvitation,
+};

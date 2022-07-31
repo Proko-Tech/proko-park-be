@@ -1,8 +1,4 @@
-const vehicle_ownership_status = [
-    'INVITED',
-    'ACCEPTED',
-    'REJECTED',
-];
+const vehicle_ownership_status = ['INVITED', 'ACCEPTED', 'REJECTED'];
 
 exports.up = function(knex) {
     return knex.schema.createTable('vehicle_ownership', (tbl) => {
@@ -10,7 +6,12 @@ exports.up = function(knex) {
         tbl.integer('user_id').notNullable();
         tbl.integer('vehicle_id').notNullable();
         tbl.boolean('is_primary_owner').notNullable();
-        tbl.enum('status', vehicle_ownership_status, {useNative: true, enumName:'spot_status_enum'}).notNullable().index();
+        tbl.enum('status', vehicle_ownership_status, {
+            useNative: true,
+            enumName: 'spot_status_enum',
+        })
+            .notNullable()
+            .index();
     });
 };
 

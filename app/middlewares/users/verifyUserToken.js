@@ -10,25 +10,25 @@ async function verifyUserToken(req, res, next) {
     // Get auth header value
     const bearerHeader = req.headers['authorization'];
     // Check if bearer is undefined
-    if(typeof bearerHeader !== 'undefined') {
+    if (typeof bearerHeader !== 'undefined') {
         // Split at the space
         const bearer = bearerHeader.split(' ');
         // Get token from array
         const bearerToken = bearer[1];
 
-        const userInfo = bearerToken?await userTokenUtil.validateToken(bearerToken):null;
+        const userInfo = bearerToken ?
+            await userTokenUtil.validateToken(bearerToken) :
+            null;
         if (userInfo) {
             req.userInfo = userInfo.userInfo;
             next();
         } else {
-            res.status(404)
-                .json({status:'failed', data: 'Session over'});
+            res.status(404).json({status: 'failed', data: 'Session over'});
         }
     } else {
         // Forbidden
-        res.status(403)
-            .json({status:'failed', data: 'Forbidden'});
+        res.status(403).json({status: 'failed', data: 'Forbidden'});
     }
 }
 
-module.exports=verifyUserToken;
+module.exports = verifyUserToken;

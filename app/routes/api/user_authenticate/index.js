@@ -9,57 +9,95 @@ const stripeCustomer = require('../../../../services/stripe/customers');
 
 const pick = require('../../../../utils/pick');
 
-router.post('/', async function(req, res){
+router.post('/', async function(req, res) {
     try {
         const {userData} = req.body;
         const result = await usersModel.getByEmail(userData.email);
 
         const isUserExist = !(result.length === 0);
-        const isSignUpNative = isUserExist ? result[0].sign_up_type === "NATIVE" : false;
-        const isCorrectPassword = isUserExist && result[0].password && isSignUpNative ?
-            bcrypt.compareSync(userData.password, result[0].password) : false;
-        const isUserMatchedNative = isUserExist && (isCorrectPassword);
+        const isSignUpNative = isUserExist ?
+            result[0].sign_up_type === 'NATIVE' :
+            false;
+        const isCorrectPassword =
+            isUserExist && result[0].password && isSignUpNative ?
+                bcrypt.compareSync(userData.password, result[0].password) :
+                false;
+        const isUserMatchedNative = isUserExist && isCorrectPassword;
 
-        if (!isUserExist) return res.status(404).json({status: 'failed', message: 'Email/password you entered is incorrect'});
+        if (!isUserExist)
+            return res
+                .status(404)
+                .json({
+                    status: 'failed',
+                    message: 'Email/password you entered is incorrect',
+                });
 
-        const isSignUpTypeSocial = result[0].sign_up_type === 'GOOGLE' ||
+        const isSignUpTypeSocial =
+            result[0].sign_up_type === 'GOOGLE' ||
             result[0].sign_up_type === 'FACEBOOK' ||
             result[0].sign_up_type === 'APPLE';
-        const isUserMatchedSocially = isUserExist && isSignUpTypeSocial ? result[0].sign_up_type === userData.login_in_type : false;
+        const isUserMatchedSocially =
+            isUserExist && isSignUpTypeSocial ?
+                result[0].sign_up_type === userData.login_in_type :
+                false;
 
         const isLogInTypeGoogle = userData.login_in_type === 'GOOGLE';
-        const isLoginGoogleWithNativeSignUp = isUserExist && isSignUpNative && isLogInTypeGoogle;
+        const isLoginGoogleWithNativeSignUp =
+            isUserExist && isSignUpNative && isLogInTypeGoogle;
         // add in password Check
-        const isValidAuth = isUserMatchedNative || isUserMatchedSocially || isLoginGoogleWithNativeSignUp;
+        const isValidAuth =
+            isUserMatchedNative ||
+            isUserMatchedSocially ||
+            isLoginGoogleWithNativeSignUp;
 
         if (isValidAuth) {
             const userInfo = {
                 ...pick(result[0], ['id', 'email']),
             };
             const token = await tokenUtil.generateToken(userInfo);
-            return res.status(202)
-                .json({status: 'success', data: token});
+            return res.status(202).json({status: 'success', data: token});
         } else {
             if (isUserExist && isSignUpTypeSocial) {
-                return res.status(401).json({status: 'failed', message: 'Account was signed up with a different method'});
+                return res
+                    .status(401)
+                    .json({
+                        status: 'failed',
+                        message:
+                            'Account was signed up with a different method',
+                    });
             } else {
-                return res.status(404).json({status: 'failed', message: 'Email/password you entered is incorrect'});
+                return res
+                    .status(404)
+                    .json({
+                        status: 'failed',
+                        message: 'Email/password you entered is incorrect',
+                    });
             }
         }
-    } catch (err){
-        return res.status(500)
-            .json({err, message: 'Unable to get user from database'})
+    } catch (err) {
+        return res
+            .status(500)
+            .json({err, message: 'Unable to get user from database'});
     }
 });
 
-router.post('/social', async function(req, res){
+router.post('/social', async function(req, res) {
     try {
         const {userData} = req.body;
-        if (userData.login_in_type === 'NATIVE') return res.status(401).json({status: 'failed', message: 'Account was signed up with a different method'});
+        if (userData.login_in_type === 'NATIVE')
+            return res
+                .status(401)
+                .json({
+                    status: 'failed',
+                    message: 'Account was signed up with a different method',
+                });
         const result = await usersModel.getByEmail(userData.email);
         const isUserExist = !(result.length === 0);
-        if (!isUserExist){
-            const stripe_profile = await stripeCustomer.create(userData.first_name+' '+userData.last_name, userData.email);
+        if (!isUserExist) {
+            const stripe_profile = await stripeCustomer.create(
+                userData.first_name + ' ' + userData.last_name,
+                userData.email,
+            );
             const user = {
                 email: userData.email,
                 first_name: userData.first_name,
@@ -76,20 +114,23 @@ router.post('/social', async function(req, res){
                 ...pick(inserted_user[0], ['id', 'email']),
             };
             const token = await tokenUtil.generateToken(userInfo);
-            return res.status(202)
+            return res
+                .status(202)
                 .json({status: 'success', data: token, type: 'SIGNUP'});
         } else {
             const userInfo = {
                 ...pick(result[0], ['id', 'email']),
             };
             const token = await tokenUtil.generateToken(userInfo);
-            return res.status(202)
+            return res
+                .status(202)
                 .json({status: 'success', data: token, type: 'LOGIN'});
         }
         // }
-    } catch (err){
-        return res.status(500)
-            .json({err, message: 'Unable to get user from database'})
+    } catch (err) {
+        return res
+            .status(500)
+            .json({err, message: 'Unable to get user from database'});
     }
 });
 
@@ -108,21 +149,22 @@ router.post('/sign-in-with-apple', async function(req, res, next) {
         try {
             const clientId = process.env.APPLE_APP_ID;
             // verify token (will throw error if failure)
-            const {sub} = await
-            appleSignin.verifyIdToken(identity_token, {
+            const {sub} = await appleSignin.verifyIdToken(identity_token, {
                 audience: clientId,
                 ignoreExpiration: true, // ignore token expiry (never expires)
             });
-            if (sub !== apple_user){
-                return res.status(404)
-                    .json({message: 'authentication failed'});
+            if (sub !== apple_user) {
+                return res.status(404).json({message: 'authentication failed'});
             }
 
             const result = await usersModel.getByAppleUser(apple_user);
             const isUserExist = !(result.length === 0);
 
-            if (!isUserExist){
-                const stripe_profile = await stripeCustomer.create(first_name+' '+last_name, email);
+            if (!isUserExist) {
+                const stripe_profile = await stripeCustomer.create(
+                    first_name + ' ' + last_name,
+                    email,
+                );
                 const user = {
                     email,
                     first_name,
@@ -141,27 +183,28 @@ router.post('/sign-in-with-apple', async function(req, res, next) {
                     ...pick(inserted_user[0], ['id', 'email']),
                 };
                 const token = await tokenUtil.generateToken(userInfo);
-                return res.status(202)
+                return res
+                    .status(202)
                     .json({status: 'success', data: token, type: 'SIGNUP'});
             } else {
                 const userInfo = {
                     ...pick(result[0], ['id', 'email']),
                 };
                 const token = await tokenUtil.generateToken(userInfo);
-                return res.status(202)
+                return res
+                    .status(202)
                     .json({status: 'success', data: token, type: 'LOGIN'});
             }
         } catch (e) {
-            return res.status(500)
-                .json({
-                    ack: 'error',
-                    message: 'failed to verify identityToken',
-                });
+            return res.status(500).json({
+                ack: 'error',
+                message: 'failed to verify identityToken',
+            });
         }
-
     } catch (err) {
-        return res.status(500)
-            .json({err, message: 'Unable to get user from database'})
+        return res
+            .status(500)
+            .json({err, message: 'Unable to get user from database'});
     }
 });
 

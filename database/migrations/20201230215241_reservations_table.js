@@ -23,13 +23,17 @@ exports.up = function(knex) {
         tbl.datetime('arrived_at');
         tbl.datetime('parked_at');
         tbl.datetime('exited_at');
-        tbl.enum('status', reservation_status, {useNative: true, enumName:'reservation_status'}).notNullable().index();
-        tbl.timestamps(true,true);// creates created_at column and updated_at column
-
+        tbl.enum('status', reservation_status, {
+            useNative: true,
+            enumName: 'reservation_status',
+        })
+            .notNullable()
+            .index();
+        // creates created_at column and updated_at column
+        tbl.timestamps(true, true);
     });
 };
 
 exports.down = function(knex) {
     return knex.schema.dropTable('reservations');
 };
-

@@ -9,10 +9,8 @@ const {DateTime} = require('luxon');
  * @param id
  * @returns {Promise<void>}
  */
-async function getById(id){
-    const rows = await db('reservations')
-        .where({id})
-        .select('*');
+async function getById(id) {
+    const rows = await db('reservations').where({id}).select('*');
     return rows;
 }
 
@@ -21,23 +19,23 @@ async function getById(id){
  * @param reserved_at
  * @returns {Promise<void>}
  */
-async function getCanceledAfterDateAndUid(user_id, reserved_at){
+async function getCanceledAfterDateAndUid(user_id, reserved_at) {
     const rows = await db('reservations')
         .where('reserved_at', '>=', reserved_at)
         .andWhere({status: 'CANCELED'})
         .andWhere({user_id})
         .select('*');
     return rows;
-};
+}
 
 /**
  * get by user id
  * @param user_id
  * @returns {Promise<void>}
  */
-async function getWithLotByUserId(user_id){
+async function getWithLotByUserId(user_id) {
     const rows = await db('reservations')
-        .join('lots','reservations.lot_id', 'lots.id')
+        .join('lots', 'reservations.lot_id', 'lots.id')
         .where({user_id})
         .orderBy('reserved_at', 'asc')
         .select('*');
@@ -50,7 +48,7 @@ async function getWithLotByUserId(user_id){
  * @param stripe_chard_id
  * @returns {Promise<{reservation_status: string}>}
  */
-async function updateCancelById(id, updateBody){
+async function updateCancelById(id, updateBody) {
     const result = {reservation_status: 'failed'};
     await db.transaction(async (transaction) => {
         try {
@@ -82,9 +80,9 @@ async function updateCancelById(id, updateBody){
  * @param user_id
  * @returns {Promise<void>}
  */
-async function getWithVehicleAndLotByUserId(user_id){
+async function getWithVehicleAndLotByUserId(user_id) {
     const rows = await db('reservations')
-        .join('lots','reservations.lot_id', 'lots.id')
+        .join('lots', 'reservations.lot_id', 'lots.id')
         .join('vehicles', 'reservations.vehicle_id', 'vehicles.id')
         .where({user_id})
         .select('*');
@@ -96,24 +94,44 @@ async function getWithVehicleAndLotByUserId(user_id){
  * @param user_id
  * @returns {Promise<unknown[]>}
  */
-async function getDistinctLotsByUserId(user_id){
+async function getDistinctLotsByUserId(user_id) {
     const rows = await db('reservations')
         .join('lots', 'reservations.lot_id', 'lots.id')
         .where({user_id})
-        .distinct(['lot_id', 'reserved_at', 'arrived_at','exited_at', 'name', 'lat', 'long', 'address', 'state', 'city', 'zip', 'alive_status', 'price_per_hour']);
-    const result = await Promise.all(rows.map(async (row)=>{
-        const spots = await spotModel.getUnoccupiedByLotId(row.lot_id);
-        const electric_spots = await spotModel.getUnoccupiedElectricByLotId(row.lot_id);
-        const reservable_spots = await spotModel.getUnoccupiedReservableByLotId(row.lot_id);
-        const lot_info = {
-            ...row,
-            available_spots: spots.length,
-            available_electric_spots: electric_spots.length,
-            available_reservable_spots: reservable_spots.length,
-            available_non_reservable_spots: spots.length - reservable_spots.length,
-        };
-        return lot_info;
-    }));
+        .distinct([
+            'lot_id',
+            'reserved_at',
+            'arrived_at',
+            'exited_at',
+            'name',
+            'lat',
+            'long',
+            'address',
+            'state',
+            'city',
+            'zip',
+            'alive_status',
+            'price_per_hour',
+        ]);
+    const result = await Promise.all(
+        rows.map(async (row) => {
+            const spots = await spotModel.getUnoccupiedByLotId(row.lot_id);
+            const electric_spots = await spotModel.getUnoccupiedElectricByLotId(
+                row.lot_id,
+            );
+            const reservable_spots =
+                await spotModel.getUnoccupiedReservableByLotId(row.lot_id);
+            const lot_info = {
+                ...row,
+                available_spots: spots.length,
+                available_electric_spots: electric_spots.length,
+                available_reservable_spots: reservable_spots.length,
+                available_non_reservable_spots:
+                    spots.length - reservable_spots.length,
+            };
+            return lot_info;
+        }),
+    );
     const reducedArr = removeDuplicates(result, ['lot_id']);
     return reducedArr;
 }
@@ -124,21 +142,20 @@ async function getDistinctLotsByUserId(user_id){
  * @param lot_id
  * @returns {Promise<void>}
  */
-async function getByUserIdAndLotId(user_id, lot_id){
+async function getByUserIdAndLotId(user_id, lot_id) {
     const rows = await db('reservations')
         .where({user_id})
         .andWhere({lot_id})
-        .select("*");
+        .select('*');
     return rows;
 }
-
 
 /**
  * get reserved tasks by user Id
  * @param user_id
  * @returns {Promise<void>}
  */
-async function getReservedByUserId(user_id){
+async function getReservedByUserId(user_id) {
     const rows = await db('reservations')
         .where({user_id})
         .andWhere({status: 'RESERVED'})
@@ -151,7 +168,7 @@ async function getReservedByUserId(user_id){
  * @param user_id
  * @returns {Promise<void>}
  */
-async function getArrivedByUserId(user_id){
+async function getArrivedByUserId(user_id) {
     const rows = await db('reservations')
         .where({user_id})
         .andWhere({status: 'ARRIVED'})
@@ -164,7 +181,7 @@ async function getArrivedByUserId(user_id){
  * @param user_id
  * @returns {Promise<void>}
  */
-async function getParkedByUserId(user_id){
+async function getParkedByUserId(user_id) {
     const rows = await db('reservations')
         .where({user_id})
         .andWhere({status: 'PARKED'})
@@ -178,7 +195,7 @@ async function getParkedByUserId(user_id){
  * @param lot_id
  * @returns {Promise<*>}
  */
-async function getReservedBySpotHashAndLotId(spot_hash, lot_id){
+async function getReservedBySpotHashAndLotId(spot_hash, lot_id) {
     const rows = await db('reservations')
         .where({spot_hash})
         .andWhere({lot_id})
@@ -193,7 +210,7 @@ async function getReservedBySpotHashAndLotId(spot_hash, lot_id){
  * @param lot_id
  * @returns {Promise<void>}
  */
-async function getReservedByUserIdAndLotId(user_id, lot_id){
+async function getReservedByUserIdAndLotId(user_id, lot_id) {
     const rows = await db('reservations')
         .where({user_id})
         .andWhere({lot_id})
@@ -208,7 +225,7 @@ async function getReservedByUserIdAndLotId(user_id, lot_id){
  * @param lot_id
  * @returns {Promise<void>}
  */
-async function getArrivedByUserIdAndLotId(user_id, lot_id){
+async function getArrivedByUserIdAndLotId(user_id, lot_id) {
     const rows = await db('reservations')
         .where({user_id})
         .andWhere({lot_id})
@@ -223,7 +240,7 @@ async function getArrivedByUserIdAndLotId(user_id, lot_id){
  * @param lot_id
  * @returns {Promise<void>}
  */
-async function getParkedByUserIdAndLotId(user_id, lot_id){
+async function getParkedByUserIdAndLotId(user_id, lot_id) {
     const rows = await db('reservations')
         .where({user_id})
         .andWhere({lot_id})
@@ -238,7 +255,7 @@ async function getParkedByUserIdAndLotId(user_id, lot_id){
  * @param lot_id
  * @returns {Promise<void>}
  */
-async function getArrivedBySpotHashAndLotId(spot_hash, lot_id){
+async function getArrivedBySpotHashAndLotId(spot_hash, lot_id) {
     const rows = await db('reservations')
         .where({spot_hash})
         .andWhere({lot_id})
@@ -253,7 +270,7 @@ async function getArrivedBySpotHashAndLotId(spot_hash, lot_id){
  * @param lot_id
  * @returns {Promise<void>}
  */
-async function getParkedBySpotHashAndLotId(spot_hash, lot_id){
+async function getParkedBySpotHashAndLotId(spot_hash, lot_id) {
     const rows = await db('reservations')
         .where({spot_hash})
         .andWhere({lot_id})
@@ -268,7 +285,7 @@ async function getParkedBySpotHashAndLotId(spot_hash, lot_id){
  * @param lot_id
  * @returns {Promise<void>}
  */
-async function getFulfilledBySpotHashAndLotId(spot_hash, lot_id){
+async function getFulfilledBySpotHashAndLotId(spot_hash, lot_id) {
     const rows = await db('reservations')
         .where({spot_hash})
         .andWhere({lot_id})
@@ -283,38 +300,53 @@ async function getFulfilledBySpotHashAndLotId(spot_hash, lot_id){
  * @param reservation_info
  * @returns {Promise<{reservation_status: string}>}
  */
-async function updateById(id, reservation_info){
+async function updateById(id, reservation_info) {
     try {
-        await db('reservations')
-            .where({id})
-            .update(reservation_info);
-        return {reservation_status:'success'};
+        await db('reservations').where({id}).update(reservation_info);
+        return {reservation_status: 'success'};
     } catch (err) {
-        return {reservation_status:'failed'};
+        return {reservation_status: 'failed'};
     }
 }
 
 /**
- * check empty spots in the requested parking lot, randomly choose index from the
- * empty spots, mark reserve then insert new reservation record. for non electric
- * spots
+ * check empty spots in the requested parking lot, randomly choose index from
+ * the empty spots, mark reserve then insert new reservation record. for non
+ * electric spots.
  *
  * @param lot_id
  * @param user_id
  * @param vehicle_id
  * @returns {Promise<{reservation_status: string}>}
  */
-async function insertAndHandleNonElectricReserve(lot_id, user_id, vehicle_id, card_id){
+async function insertAndHandleNonElectricReserve(
+    lot_id,
+    user_id,
+    vehicle_id,
+    card_id,
+) {
     const result = {reservation_status: 'failed'};
 
     await db.transaction(async (transaction) => {
         try {
-            const reserved_at = DateTime.local().toUTC().toSQL({includeOffset:false});
-            const emptySpots = await spotModel.getUnoccupiedNotElectricAndReservableByLotId(lot_id);
+            const reserved_at = DateTime.local()
+                .toUTC()
+                .toSQL({includeOffset: false});
+            const emptySpots =
+                await spotModel.getUnoccupiedNotElectricAndReservableByLotId(
+                    lot_id,
+                );
             if (emptySpots.length === 0) await transaction.rollback();
             const props = ['secret', 'lot_id'];
             const spotInfo = {
-                ...pick(emptySpots[Math.floor(Math.random() * Math.floor(emptySpots.length))], props),
+                ...pick(
+                    emptySpots[
+                        Math.floor(
+                            Math.random() * Math.floor(emptySpots.length),
+                        )
+                    ],
+                    props,
+                ),
                 status: 'RESERVED',
             };
             await db('spots')
@@ -326,7 +358,10 @@ async function insertAndHandleNonElectricReserve(lot_id, user_id, vehicle_id, ca
                 .where({id: vehicle_id})
                 .select('*');
             const reservationInfo = {
-                user_id, lot_id, vehicle_id, card_id,
+                user_id,
+                lot_id,
+                vehicle_id,
+                card_id,
                 license_plate: vehicle[0].license_plate,
                 spot_hash: spotInfo.secret,
                 reserved_at,
@@ -352,16 +387,27 @@ async function insertAndHandleNonElectricReserve(lot_id, user_id, vehicle_id, ca
  * @param user_id
  * @returns {Promise<{reservation_status: string}>}
  */
-async function insertAndHandleFCFSNonElectricArrive(lot_id, user_id){
+async function insertAndHandleFCFSNonElectricArrive(lot_id, user_id) {
     const result = {reservation_status: 'failed'};
     await db.transaction(async (transaction) => {
         try {
-            const reserved_at = DateTime.local().toUTC().toSQL({includeOffset: false});
-            const emptySpots = await spotModel.getUnoccupiedNotElectricByLotId(lot_id);
+            const reserved_at = DateTime.local()
+                .toUTC()
+                .toSQL({includeOffset: false});
+            const emptySpots = await spotModel.getUnoccupiedNotElectricByLotId(
+                lot_id,
+            );
             if (emptySpots.length === 0) await transaction.rollback();
             const props = ['secret', 'lot_id'];
             const spotInfo = {
-                ...pick(emptySpots[Math.floor(Math.random() * Math.floor(emptySpots.length))], props),
+                ...pick(
+                    emptySpots[
+                        Math.floor(
+                            Math.random() * Math.floor(emptySpots.length),
+                        )
+                    ],
+                    props,
+                ),
             };
             await db('spots')
                 .where({lot_id})
@@ -369,7 +415,8 @@ async function insertAndHandleFCFSNonElectricArrive(lot_id, user_id){
                 .update({spot_status: 'RESERVED'})
                 .transacting(transaction);
             const reservationInfo = {
-                user_id, lot_id,
+                user_id,
+                lot_id,
                 license_plate: 'First Come First Serve',
                 vehicle_id: -1,
                 spot_hash: spotInfo.secret,
@@ -391,4 +438,25 @@ async function insertAndHandleFCFSNonElectricArrive(lot_id, user_id){
     return result;
 }
 
-module.exports={getById, getWithLotByUserId, getCanceledAfterDateAndUid, updateCancelById, getDistinctLotsByUserId, getByUserIdAndLotId, getReservedBySpotHashAndLotId, getWithVehicleAndLotByUserId, getReservedByUserId, getArrivedByUserId, getParkedByUserId, getArrivedByUserIdAndLotId, getParkedByUserIdAndLotId, getParkedBySpotHashAndLotId, getFulfilledBySpotHashAndLotId, getReservedByUserIdAndLotId, getArrivedBySpotHashAndLotId, updateById, insertAndHandleNonElectricReserve, insertAndHandleFCFSNonElectricArrive};
+module.exports = {
+    getById,
+    getWithLotByUserId,
+    getCanceledAfterDateAndUid,
+    updateCancelById,
+    getDistinctLotsByUserId,
+    getByUserIdAndLotId,
+    getReservedBySpotHashAndLotId,
+    getWithVehicleAndLotByUserId,
+    getReservedByUserId,
+    getArrivedByUserId,
+    getParkedByUserId,
+    getArrivedByUserIdAndLotId,
+    getParkedByUserIdAndLotId,
+    getParkedBySpotHashAndLotId,
+    getFulfilledBySpotHashAndLotId,
+    getReservedByUserIdAndLotId,
+    getArrivedBySpotHashAndLotId,
+    updateById,
+    insertAndHandleNonElectricReserve,
+    insertAndHandleFCFSNonElectricArrive,
+};
