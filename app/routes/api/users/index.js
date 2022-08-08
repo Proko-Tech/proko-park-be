@@ -327,7 +327,7 @@ router.get('/:id', async function(req, res) {
     }
 });
 
-router.delete('/deleteUser', async function(req, res){
+router.delete('/deleteUser', async function(req, res) {
     const {id} = req.userInfo;
     try {
         // Is it necessary to check if user exists first before calling deletion
@@ -338,7 +338,7 @@ router.delete('/deleteUser', async function(req, res){
         return res.status(200).json({status: "success", message: "Successfully deleted user account"});
     } catch (err) {
         return res.status(500)
-        .json({err, message: 'Unable to delete user account due to server error'});
+            .json({err, message: 'Unable to delete user account due to server error'});
     }
 });
 
