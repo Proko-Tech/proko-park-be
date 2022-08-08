@@ -107,4 +107,13 @@ async function deleteById(id) {
         .del();
 }
 
-module.exports = {getById, getByEmailAndSignupType, getByAppleUser, updateById, getAllById, getByEmail, insert, deleteById};
+module.exports = {
+    getById, 
+    getByEmailAndSignupType, 
+    getByAppleUser, 
+    updateById,
+    getAllById, 
+    getByEmail, 
+    insert, 
+    deleteById
+};
