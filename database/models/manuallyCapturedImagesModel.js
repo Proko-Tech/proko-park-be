@@ -11,7 +11,7 @@ const {DateTime} = require('luxon');
  async function getById(id) {
     const rows = await db('manually_captured_images').where({id}).select('*');
     return rows;
-}
+ }
 
  async function getBySpotId(spot_id) {
     const rows = await db('manually_captured_images').where('spot_id', spot_id).select('*');
