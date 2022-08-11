@@ -330,7 +330,7 @@ router.get('/:id', async function(req, res) {
 router.delete('/deleteUser', async function(req, res) {
     const {id} = req.userInfo;
     try {
-        // Is it necessary to check if user exists first before calling deletion
+        // Check if user exists before deleting
         const user = await userModel.getById(id)
         const isUserExist = user.length !== 0;
         if (!isUserExist) return res.status(404).json({message: 'User does not exist'});
