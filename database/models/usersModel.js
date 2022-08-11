@@ -115,5 +115,5 @@ module.exports = {
     getAllById, 
     getByEmail, 
     insert, 
-    deleteById
+    deleteById,
 };
