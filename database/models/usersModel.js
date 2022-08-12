@@ -96,12 +96,24 @@ async function updateById(id, modified_user) {
     }
 }
 
+/**
+ * function that deletes user by id
+ * @param id 
+ * @returns {Promise<void>}
+ */
+async function deleteById(id) {
+    await db('users')
+        .where({id})
+        .del();
+}
+
 module.exports = {
-    getById,
-    getByEmailAndSignupType,
-    getByAppleUser,
+    getById, 
+    getByEmailAndSignupType, 
+    getByAppleUser, 
     updateById,
-    getAllById,
-    getByEmail,
-    insert,
+    getAllById, 
+    getByEmail, 
+    insert, 
+    deleteById,
 };

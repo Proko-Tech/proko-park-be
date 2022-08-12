@@ -327,4 +327,19 @@ router.get('/:id', async function(req, res) {
     }
 });
 
+router.delete('/', async function(req, res) {
+    const {id} = req.userInfo;
+    try {
+        // Check if user exists before deleting
+        const user = await userModel.getById(id)
+        const isUserExist = user.length !== 0;
+        if (!isUserExist) return res.status(404).json({message: 'User does not exist'});
+        await userModel.deleteById(id);
+        return res.status(200).json({status: "success", message: "Successfully deleted user account"});
+    } catch (err) {
+        return res.status(500)
+            .json({err, message: 'Unable to delete user account due to server error'});
+    }
+});
+
 module.exports = router;
