@@ -327,7 +327,7 @@ router.get('/:id', async function(req, res) {
     }
 });
 
-router.delete('/deleteUser', async function(req, res) {
+router.delete('/', async function(req, res) {
     const {id} = req.userInfo;
     try {
         // Check if user exists before deleting
