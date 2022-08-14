@@ -7,7 +7,7 @@ const db = require('../dbConfig');
  */
 async function getById(capture_id) {
 	const rows = await db('manually_captured_images').where('capture_id', capture_id).select('*');
-	return rows;
+    return rows;
 }
 
 
