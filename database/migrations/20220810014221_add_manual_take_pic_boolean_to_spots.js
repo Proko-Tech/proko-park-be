@@ -6,7 +6,7 @@ exports.up = function(knex) {
 };
 
 exports.down = function(knex) {
-	return knex.schema.table('spots', (tbl) => {
-		tbl.dropColumn('manual_capture');
-	});
+    return knex.schema.table('spots', (tbl) => {
+        tbl.dropColumn('manual_capture');
+    });
 };

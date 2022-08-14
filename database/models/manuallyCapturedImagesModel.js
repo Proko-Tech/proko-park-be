@@ -6,7 +6,7 @@ const db = require('../dbConfig');
  * @returns {Promise<void>}
  */
 async function getById(capture_id) {
-	const rows = await db('manually_captured_images').where('capture_id', capture_id).select('*');
+    const rows = await db('manually_captured_images').where('capture_id', capture_id).select('*');
     return rows;
 }
 
@@ -17,6 +17,6 @@ async function getById(capture_id) {
  * @returns {Promise<void>}
  */
 async function getAllBySpotId(spot_secret) {
-	const rows = await db('manually_captured_images').where('spot_secret', spot_secret).select('*');
-	return rows;
+    const rows = await db('manually_captured_images').where('spot_secret', spot_secret).select('*');
+    return rows;
 }
