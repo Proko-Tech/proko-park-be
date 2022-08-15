@@ -1,11 +1,10 @@
 
 exports.up = function(knex) {
     return knex.schema.createTable('manually_captured_images', (tbl) => {
-        tbl.increments('capture_id').unique().notNullable();
+        tbl.increments('id').unique().notNullable();
         tbl.text('spot_secret').notNullable();
         tbl.integer('admin_id');
-        tbl.timestamp('created_at').defaultTo(knex.fn.now());
-        tbl.timestamp('updated_at').defaultTo(knex.fn.now());
+        tbl.timestamps(true, true);
         tbl.text('image_url');
     });
 };

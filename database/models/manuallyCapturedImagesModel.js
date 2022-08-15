@@ -1,22 +1,22 @@
 const db = require('../dbConfig');
 
 /**
- * get manual capture info by capture_id
- * @param capture_id each manual capture entry has a unique capture_id
+ * get manually_captured_images row by id
+ * @param id each manually_captured_images entry has a unique id
  * @returns {Promise<void>}
  */
-async function getById(capture_id) {
-	const rows = await db('manually_captured_images').where('capture_id', capture_id).select('*');
+async function getById(id) {
+	const rows = await db('manually_captured_images').where('id', id).select('*');
 	return rows;
 }
 
 
 /**
- * get all manual capture info by spot_secret
+ * get all manually_captured_images rows by spot_secret
  * @param spot_secret
  * @returns {Promise<void>}
  */
-async function getAllBySpotId(spot_secret) {
+async function getBySpotSecret(spot_secret) {
 	const rows = await db('manually_captured_images').where('spot_secret', spot_secret).select('*');
 	return rows;
 }
