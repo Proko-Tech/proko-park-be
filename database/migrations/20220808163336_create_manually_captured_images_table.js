@@ -10,5 +10,5 @@ exports.up = function(knex) {
 };
 
 exports.down = function(knex) {
-  return knex.schema.dropTable('manually_captured_images');
+    return knex.schema.dropTable('manually_captured_images');
 };
