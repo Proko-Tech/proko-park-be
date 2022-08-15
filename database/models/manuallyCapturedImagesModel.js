@@ -5,10 +5,9 @@ const db = require('../dbConfig');
  * @param id each manually_captured_images entry has a unique id
  * @returns {Promise<void>}
  */
-
 async function getById(id) {
-	const rows = await db('manually_captured_images').where('id', id).select('*');
-	return rows;
+    const rows = await db('manually_captured_images').where('id', id).select('*');
+    return rows;
 }
 
 
@@ -17,8 +16,7 @@ async function getById(id) {
  * @param spot_secret
  * @returns {Promise<void>}
  */
-
 async function getBySpotSecret(spot_secret) {
-	const rows = await db('manually_captured_images').where('spot_secret', spot_secret).select('*');
-	return rows;
+    const rows = await db('manually_captured_images').where('spot_secret', spot_secret).select('*');
+    return rows;
 }
