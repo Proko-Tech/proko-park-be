@@ -1,7 +1,7 @@
 
 exports.up = function(knex) {
     return knex.schema.table('spots', (tbl) => {
-        tbl.boolean('manual_capture');
+        tbl.boolean('manual_capture').defaultTo(false);
     });
 };
 
