@@ -1,5 +1,9 @@
 # Proko Park Backend
 
+
+![Lint](https://github.com/Proko-Tech/proko-park-be/actions/workflows/lint.yml/badge.svg)
+![Build](https://github.com/Proko-Tech/proko-park-be/actions/workflows/node.js.yml/badge.svg)
+
 ## Project Description
 
 This repository is the rest api for the the mobile application. The REST API allows each each users
