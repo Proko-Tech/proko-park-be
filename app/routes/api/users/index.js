@@ -342,9 +342,9 @@ router.delete('/', async function(req, res) {
     }
 });
 
-router.get('/verify_email', async function (req, res) {
+router.get('/verify_email/:email', async function(req, res) {
     try {
-        const {email} = req.body;
+        const {email} = req.params;
         const user = await userModel.getByEmail(email)
         const isUserExist = user.length !== 0;
         return !isUserExist ? res.status(404).json({message: 'User does not exist'}) : res.status(200).json({status: "success", message: "User exists"})
