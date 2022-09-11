@@ -342,4 +342,15 @@ router.delete('/', async function(req, res) {
     }
 });
 
+router.get('/verify_email/:email', async function(req, res) {
+    try {
+        const {email} = req.params;
+        const user = await userModel.getByEmail(email)
+        const isUserExist = user.length !== 0;
+        return !isUserExist ? res.status(404).json({message: 'User does not exist'}) : res.status(200).json({status: "success", message: "User exists"})
+    } catch (err) {
+        return res.status(500).json({err, message: 'Unable to verify email due to server error'})
+    }
+})
+
 module.exports = router;
