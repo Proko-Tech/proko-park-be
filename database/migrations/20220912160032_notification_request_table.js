@@ -1,7 +1,7 @@
 const status_enum = ['REQUESTED', 'SENT', 'ERROR'];
 
 exports.up = function(knex) {
-    return knex.schema.createTable('notification_request', (tbl) => {
+    return knex.schema.createTable('notification_requests', (tbl) => {
         tbl.increments('id').unique().notNullable();
         tbl.integer('user_id').notNullable();
         tbl.integer('lot_id').notNullable();
@@ -15,5 +15,5 @@ exports.up = function(knex) {
 };
 
 exports.down = function(knex) {
-    return knex.schema.dropTable('notification_request');
+    return knex.schema.dropTable('notification_requests');
 };
