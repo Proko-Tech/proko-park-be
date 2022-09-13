@@ -11,6 +11,7 @@ const vehicleModel = require('../../../../database/models/vehiclesModel');
 const lotModel = require('../../../../database/models/lotsModel');
 const reservationModel = require('../../../../database/models/reservationModel');
 const spotsModel = require('../../../../database/models/spotsModel');
+const vehicleOwnershipModel = require('../../../../database/models/vehicleOwnershipModel')
 
 router.get('/parking_lot/:id', async function(req, res) {
     const {id} = req.params;
@@ -329,14 +330,42 @@ router.get('/:id', async function(req, res) {
 
 router.delete('/', async function(req, res) {
     const {id} = req.userInfo;
+    const {actions} = req.body;
+
     try {
-        // Check if user exists before deleting
-        const user = await userModel.getById(id)
-        const isUserExist = user.length !== 0;
-        if (!isUserExist) return res.status(404).json({message: 'User does not exist'});
-        await userModel.deleteById(id);
-        return res.status(200).json({status: "success", message: "Successfully deleted user account"});
+        // // Delete co-owned vehicles by removing ownership from db
+        // const coOwnedVehicles = await vehicleOwnershipModel.getCoOwnedByUserId(id);
+        // const coOwnedExists = coOwnedVehicles.length !== 0;
+        // if (coOwnedExists) {
+        //     await vehicleOwnershipModel.deleteCoOwnedByUserId(id);
+        // }
+    
+        // // Delete all primary vehicles specified by user
+        // const deletablePrimaryVehicles = actions.filter(action => action.action === 'DELETE').map(action => action.vehicle.id) // List of ID
+        // const deletablePrimaryVehiclesExists = deletablePrimaryVehicles.length !== 0;
+        // if (deletablePrimaryVehiclesExists) {
+        //     await vehicleModel.batchDeleteByIdTransactOwnership(deletablePrimaryVehicles)
+        // }
+
+        // Reassign all primary vehicles specified by user
+        const assignablePrimaryVehicles = actions.filter(action => action.action === 'REASSIGN')
+        const assignablePrimaryVehiclesExists = assignablePrimaryVehicles.length !== 0;
+        if (assignablePrimaryVehiclesExists) {
+            const convertedEmails = await userModel.convertEmailToUserId(assignablePrimaryVehicles.map(action => action.reassigned_user)) // Convert emails to list of user IDs (debug duplicate emails)
+            const zip = (actions, emails) => actions.map((action, i) => {return {vehicle_id: action.vehicle.id, is_primary_owner: 1, status: 'ACCEPTED', user_id: emails[i]}})
+            const reassignedRows = zip(assignablePrimaryVehicles, convertedEmails); 
+            console.log(reassignedRows)
+            await vehicleOwnershipModel.batchTransferOwnership(reassignedRows, id);
+        }
+
+        // Delete user information from user table
+        // const user = await userModel.getById(id)
+        // const isUserExist = user.length !== 0;
+        // if (!isUserExist) return res.status(404).json({message: 'User does not exist'});
+        // await userModel.deleteById(id);
+        // return res.status(200).json({status: "success", message: "Successfully deleted user account"});
     } catch (err) {
+        console.log(err)
         return res.status(500)
             .json({err, message: 'Unable to delete user account due to server error'});
     }

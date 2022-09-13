@@ -61,7 +61,7 @@ async function getById(id) {
     const result = await db('vehicle_ownership').select('*').where({id});
     return result;
 }
-
+ 
 /**
  * Delete ownership by id
  * @param id
@@ -71,6 +71,37 @@ async function deleteById(id) {
     await db('vehicle_ownership').where({id}).del();
 }
 
+/**
+ * Get all co-owned vehicles by user id
+ * @param id 
+ * @returns  {Promise<void>}
+ */
+async function getCoOwnedByUserId(id) {
+    const result = await db('vehicle_ownership').select('*').where({user_id: id, is_primary_owner: 0})
+    return result;
+}
+
+/**
+ * Deletes all co-owned vehicles by user id
+ * @param id 
+ * @returns  {Promise<void>}
+ */
+async function deleteCoOwnedByUserId(id) {
+    const result = await db('vehicle_ownership').where({user_id: id, is_primary_owner: 0}).del()
+    return result;
+}
+
+/**
+ * delete vehicle & ownership information by a list of ...
+ * @param 
+ * @returns {Promise<void>}
+ */  
+ async function batchTransferOwnership(assignToUsers, id) {
+    // await db('vehicle_ownership').where({user_id: id, is_primary_owner: 0}).del() // Delete ownership record of user to be deleted
+    const result = await db('vehicle_ownership').insert(assignToUsers)
+    return result
+}
+
 module.exports = {
     getByUserIdAndVehicleId,
     getByVehicleIdJoinUser,
@@ -78,4 +109,7 @@ module.exports = {
     updateById,
     getById,
     deleteById,
+    getCoOwnedByUserId,
+    deleteCoOwnedByUserId,
+    batchTransferOwnership
 };
