@@ -113,8 +113,8 @@ async function deleteById(id) {
  * @returns {Promise<void>}
  */
  async function convertEmailToUserId(emails) {
-    const ids = await db('users').whereIn('email', emails).select('id', 'email').orderByRaw(`FIND_IN_SET(\`email\`, '${emails}')`); // Preserve query order
     console.log(emails)
+    const ids = await db('users').whereIn('email', emails).select('id', 'email').orderByRaw(`FIND_IN_SET(\`email\`, '${emails}')`); // Preserve query order
     console.log(ids)
     return ids.map(row => row.id)
 }

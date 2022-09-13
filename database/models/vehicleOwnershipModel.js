@@ -34,6 +34,18 @@ async function getByVehicleIdJoinUser(vehicle_id) {
 }
 
 /**
+ * get vehicle ownership and users joined table
+ * @param vehicle_id
+ * @returns {Promise<void>}
+ */
+ async function getOwnershipJoinUser() {
+    const result = await db('users')
+        .leftJoin('vehicle_ownership', 'users.id', 'vehicle_ownership.user_id')
+        .select('vehicle_ownership.user_id', 'users.id', 'email', 'is_primary_owner', 'vehicle_id');
+    return result;
+}
+
+/**
  * insert new record
  * @param insertJson
  * @returns {Promise<{status: string}>}
@@ -96,10 +108,12 @@ async function deleteCoOwnedByUserId(id) {
  * @param 
  * @returns {Promise<void>}
  */  
- async function batchTransferOwnership(assignToUsers, id) {
-    // await db('vehicle_ownership').where({user_id: id, is_primary_owner: 0}).del() // Delete ownership record of user to be deleted
-    const result = await db('vehicle_ownership').insert(assignToUsers)
-    return result
+ async function batchInsertTransferOwnership(assignToUsers, id) {
+    await db('vehicle_ownership').insert(assignToUsers)
+}
+
+async function batchUpdateTransferOwnership(row) {
+    await db('vehicle_ownership').where({user_id: row.user_id, vehicle_id: row.vehicle_id}).update({is_primary_owner: 1, status: 'ACCEPTED'})
 }
 
 module.exports = {
@@ -111,5 +125,7 @@ module.exports = {
     deleteById,
     getCoOwnedByUserId,
     deleteCoOwnedByUserId,
-    batchTransferOwnership
+    batchInsertTransferOwnership,
+    batchUpdateTransferOwnership,
+    getOwnershipJoinUser,
 };
