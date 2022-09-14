@@ -111,27 +111,26 @@ router.post('/closest', async function(req, res) {
 });
 
 router.post('/notification', async function(req, res) {
-    const {user_id, lot_id} = req.body;
+    const {lot_id} = req.body;
+    const user_id = req.userInfo.id;
     try {
         const notification_requests = await notificationRequestModel
             .getRequestedOrErrorByUserIdAndLotId(user_id, lot_id);
-        if (notification_requests.length === 0) {
+        if (notification_requests.length !== 0) {
             return res
                 .status(400)
                 .json({
-                    err,
                     status: 'failed',
                     msg: 'You already have a notification turned ' +
                         'on for this spot',
                 });
         }
 
-        const free_spots = spotsModel.getUnoccupiedByLotId(lot_id);
+        const free_spots = await spotsModel.getUnoccupiedByLotId(lot_id);
         if (free_spots.length !== 0) {
             return res
                 .status(400)
                 .json({
-                    err,
                     status: 'failed',
                     msg: 'A free spot is found in this garage',
                 });
@@ -143,7 +142,6 @@ router.post('/notification', async function(req, res) {
             return res
                 .status(500)
                 .json({
-                    err,
                     status: 'failed',
                     msg: 'Insert failed due to server error',
                 });
@@ -154,6 +152,7 @@ router.post('/notification', async function(req, res) {
             .json({status: 'success', data: notification});
 
     } catch (err) {
+        console.log(err)
         return res
             .status(500)
             .json({
