@@ -18,11 +18,11 @@ async function getNotificationRequestsByLotIdAndStatus(lot_id, status) {
  * @param id
  * @returns {Promise<void>}
  */
-async function updateById(id) {
+async function updateById(id, update_body) {
     try{
         await db('notification_requests')
         .where({id})
-        .update({status: 'SENT'});
+        .update(update_body);
         return {notification_status: 'success'};
     } catch (err) {
         return {notification_status: 'failed'};
