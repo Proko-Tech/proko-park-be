@@ -44,7 +44,7 @@ async function updateById(id, update_body) {
         return {notification_status: 'failed'};
     }
 }
-
+/**
  * get requested and error notification requests by [user_id]
  * @param user_id
  * @returns {Promise<awaited Knex.QueryBuilder<TRecord, ArrayIfAlready<TResult, DeferredKeySelection<TRecord, string>>>>}

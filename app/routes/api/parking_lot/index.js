@@ -114,23 +114,23 @@ router.put('/spot', async function(req, res) {
             const availableSpots = await spotsModel.getUnoccupiedReservableByLotId(lot_data.id);
             const isParkingLotFull = availableSpots.length === 0;
             if (isParkingLotFull) {
-                const notificationRequested = await notificationRequestModel.getByLotIdAndStatus(lot_data.id, 'REQUESTED')
-                for(let i = 0; i < notificationRequested.length; i++) {
-                    const user = await usersModel.getById(notificationRequested[i].user_id)
+                const notificationRequested = await notificationRequestModel.getByLotIdAndStatus(lot_data.id, 'REQUESTED');
+                for (let i = 0; i < notificationRequested.length; i++) {
+                    const user = await usersModel.getById(notificationRequested[i].user_id);
                     await mailer.sendAvailabilityNotification(
-                        user[0].first_name, 
+                        user[0].first_name,
                         user[0].email,
                         lot_data.name,
                         async function(err,res){
                             const notificationUpdateInfo = {
                                 status: 'SENT',
                             };
-                            if(err) {
+                            if (err) {
                                 console.log(err);
                                 notificationUpdateInfo.status = 'ERROR';
                             }
-                            await notificationRequestModel.updateById(notificationRequested[i].id, notificationUpdateInfo)
-                        }
+                            await notificationRequestModel.updateById(notificationRequested[i].id, notificationUpdateInfo);
+                        },
                     )
                 }
             }
@@ -246,10 +246,10 @@ router.put('/spot', async function(req, res) {
             const isParkingLotFull = availableSpots.length === 0;
             if (isParkingLotFull) {
                 const notificationRequested = await notificationRequestModel.getByLotIdAndStatus(lot_data.id, 'REQUESTED')
-                for(let i = 0; i < notificationRequested.length; i++) {
+                for (let i = 0; i < notificationRequested.length; i++) {
                     const user = await usersModel.getById(notificationRequested[i].user_id)
                     await mailer.sendAvailabilityNotification(
-                        user[0].first_name, 
+                        user[0].first_name,
                         user[0].email,
                         lot_data.name,
                         async function(err,res){
@@ -261,7 +261,7 @@ router.put('/spot', async function(req, res) {
                                 notificationUpdateInfo.status = 'ERROR';
                             }
                             await notificationRequestModel.updateById(notificationRequested[i].id, notificationUpdateInfo)
-                        }
+                        },
                     )
                 }
             }
