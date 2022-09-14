@@ -195,21 +195,21 @@ const sendCoownVehicleInvitation = (user, inviter, vehicle, callback) => {
 };
 
 const sendAvailabilityNotification = (
-    first_name,
-    receiverEmail,
+    receiver_emails,
     lot_name,
     callback,
-    ) => {
+) => {
     ejs.renderFile(
         path.join(__dirname, '..', 'views/AvailabilityNotification.ejs'),
-        {first_name, lot_name},
+        {lot_name},
         function(err, data) {
             if (err) {
                 console.log(err);
             } else {
                 const mailOptions = {
                     from: process.env.EMAILUSER,
-                    to: receiverEmail,
+                    to: process.env.EmailUser,
+                    bcc: receiver_emails,
                     subject: 'Proko Park: Availability Notification',
                     html: data,
                 };
@@ -229,7 +229,7 @@ const sendAvailabilityNotification = (
                     }
                 });
             }
-        }
+        },
     )
 }
 

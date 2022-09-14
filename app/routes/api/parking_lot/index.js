@@ -71,33 +71,6 @@ router.put('/spot', async function(req, res) {
             !is_arrived_to_parked &&
             !is_reserved_to_parked &&
             !is_parked_to_exit;
-            
-        if (is_parked_to_exit || is_violation_to_exit) {
-            const availableSpots = await spotsModel.getUnoccupiedReservableByLotId(lot_data.id);
-            const lotInfo = await lotsModel.getById(lot_data.id);
-            const isParkingLotFull = availableSpots.length === 0;
-            if (isParkingLotFull) {
-                const notificationRequested = await notificationRequestsModel.getByLotIdAndStatus(lot_data.id, 'REQUESTED')
-                for(let i = 0; i < notificationRequested.length; i++) {
-                    const user = await usersModel.getById(notificationRequested[i].user_id)
-                    await mailer.sendAvailabilityNotification(
-                        user[0].first_name, 
-                        user[0].email,
-                        lotInfo[0].name,
-                        async function(res){
-                            const notificationUpdateInfo = {
-                                status: 'SENT',
-                            };
-                            if(!res.status) {
-                                console.log(res);
-                                notificationUpdateInfo.status = 'ERROR';
-                            }
-                            await notificationRequestsModel.updateById(notificationRequested[i].id, notificationUpdateInfo)
-                        }
-                    )
-                }
-            }
-        }
 
         const date = DateTime.local().toUTC();
         if (is_unoccupied_to_parked) {
@@ -252,15 +225,37 @@ router.put('/spot', async function(req, res) {
             spot_update_status.spot_status === 'success' &&
             lot_status === 'success' &&
             reservation_status === 'success';
-        if (is_update_success) {
-            return res
-                .status(200)
-                .json({status: 'success', data: 'Parking lot updated'});
-        } else {
+        if (!is_update_success) {
             return res
                 .status(404)
                 .json({status: 'failed', data: 'Parking lot not updated'});
         }
+
+        if (is_parked_to_exit || is_violation_to_exit) {
+            const lot_info = await lotsModel.getById(lot_data.id);
+            const notification_requests = await notificationRequestsModel
+                .getByLotIdAndStatusJoinUsers(lot_data.id, 'REQUESTED');
+            const user_emails = notification_requests
+                .map((notification_request) => notification_request.email)
+
+            mailer.sendAvailabilityNotification(
+                user_emails,
+                lot_info[0].name,
+                async function(result) {
+                    if (result.status === 'failed') {
+                        await notificationRequestsModel
+                            .updateRequestedOrErrorByLotId(
+                                lot_data.id, {status: 'ERROR'});
+                    }
+                    await notificationRequestsModel
+                        .updateRequestedOrErrorByLotId(
+                            lot_data.id, {status: 'SENT'});
+                });
+        }
+
+        return res
+            .status(200)
+            .json({status: 'success', data: 'Parking lot updated'});
     } catch (err) {
         console.log(err);
         return res
