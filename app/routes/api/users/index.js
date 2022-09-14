@@ -9,6 +9,7 @@ const stripeCustomer = require('../../../../services/stripe/customers');
 const userModel = require('../../../../database/models/usersModel');
 const vehicleModel = require('../../../../database/models/vehiclesModel');
 const lotModel = require('../../../../database/models/lotsModel');
+const notificationRequestsModel = require('../../../../database/models/notificationRequestsModel');
 const reservationModel = require('../../../../database/models/reservationModel');
 const spotsModel = require('../../../../database/models/spotsModel');
 
@@ -221,104 +222,110 @@ router.delete('/deleteCard/:card_source', async function(req, res) {
 router.get('/:id', async function(req, res) {
     const {id} = req.params;
     try {
-        if (id === JSON.stringify(req.userInfo.id)) {
-            const user = await userModel.getAllById(id);
-            user.user.vehicles = await vehicleModel.getByUserId(id);
-            const currentReservation =
-                await reservationModel.getReservedByUserId(id);
-            const currentArrivedTasks =
-                await reservationModel.getArrivedByUserId(id);
-            const currentParkedTasks = await reservationModel.getParkedByUserId(
-                id,
-            );
-            const isUserCurrentlyHasTask =
-                currentReservation.length > 0 ||
-                currentArrivedTasks.length > 0 ||
-                currentParkedTasks.length > 0;
-
-            // TODO: add check current parked, and arrived
-            let reservation_info = {};
-            if (isUserCurrentlyHasTask) {
-                if (currentReservation.length > 0) {
-                    const vehicles = await vehicleModel.getById(
-                        currentReservation[0].vehicle_id,
-                    );
-                    const lots = await lotModel.getById(
-                        currentReservation[0].lot_id,
-                    );
-                    const spots = await spotsModel.getBySecret(
-                        currentReservation[0].spot_hash,
-                    );
-                    reservation_info = {
-                        vehicle: vehicles[0],
-                        parking_lot: lots[0],
-                        status: 'RESERVED',
-                        reserved_at: currentReservation[0].reserved_at,
-                        arrived_at: currentReservation[0].arrived_at,
-                        parked_at: currentReservation[0].parked_at,
-                        reservation_id: currentReservation[0].id,
-                        spot: spots[0],
-                    };
-                }
-                if (currentArrivedTasks.length > 0) {
-                    const vehicles = await vehicleModel.getById(
-                        currentArrivedTasks[0].vehicle_id,
-                    );
-                    const lots = await lotModel.getById(
-                        currentArrivedTasks[0].lot_id,
-                    );
-                    const spots = await spotsModel.getBySecret(
-                        currentArrivedTasks[0].spot_hash,
-                    );
-                    reservation_info = {
-                        vehicle: vehicles[0],
-                        parking_lot: lots[0],
-                        status: 'ARRIVED',
-                        reserved_at: currentArrivedTasks[0].reserved_at,
-                        arrived_at: currentArrivedTasks[0].arrived_at,
-                        parked_at: currentArrivedTasks[0].parked_at,
-                        reservation_id: currentArrivedTasks[0].id,
-                        spot: spots[0],
-                    };
-                }
-                if (currentParkedTasks.length > 0) {
-                    const vehicles = await vehicleModel.getById(
-                        currentParkedTasks[0].vehicle_id,
-                    );
-                    const lots = await lotModel.getById(
-                        currentParkedTasks[0].lot_id,
-                    );
-                    const spots = await spotsModel.getBySecret(
-                        currentParkedTasks[0].spot_hash,
-                    );
-                    reservation_info = {
-                        vehicle: vehicles[0],
-                        parking_lot: lots[0],
-                        status: 'PARKED',
-                        reserved_at: currentParkedTasks[0].reserved_at,
-                        arrived_at: currentParkedTasks[0].arrived_at,
-                        parked_at: currentParkedTasks[0].parked_at,
-                        reservation_id: currentParkedTasks[0].id,
-                        spot: spots[0],
-                    };
-                }
-            }
-            const card_information = await stripeCustomer.getCardsByCustomerId(
-                user.user.stripe_customer_id,
-            );
-            return res
-                .status(200)
-                .json({
-                    data: user,
-                    reservation_info,
-                    card_information,
-                    msg: 'User info was found',
-                });
-        } else {
+        if (id !== JSON.stringify(req.userInfo.id)) {
             return res
                 .status(401)
                 .json({status: 'failed', message: 'Unauthorized action'});
         }
+        const user = await userModel.getAllById(id);
+        user.user.vehicles = await vehicleModel.getByUserId(id);
+        const currentReservation =
+                await reservationModel.getReservedByUserId(id);
+        const currentArrivedTasks =
+                await reservationModel.getArrivedByUserId(id);
+        const currentParkedTasks = await reservationModel.getParkedByUserId(
+            id,
+        );
+        const isUserCurrentlyHasTask =
+                currentReservation.length > 0 ||
+                currentArrivedTasks.length > 0 ||
+                currentParkedTasks.length > 0;
+
+        // TODO: add check current parked, and arrived
+        let reservation_info = {};
+        if (isUserCurrentlyHasTask) {
+            if (currentReservation.length > 0) {
+                const vehicles = await vehicleModel.getById(
+                    currentReservation[0].vehicle_id,
+                );
+                const lots = await lotModel.getById(
+                    currentReservation[0].lot_id,
+                );
+                const spots = await spotsModel.getBySecret(
+                    currentReservation[0].spot_hash,
+                );
+                reservation_info = {
+                    vehicle: vehicles[0],
+                    parking_lot: lots[0],
+                    status: 'RESERVED',
+                    reserved_at: currentReservation[0].reserved_at,
+                    arrived_at: currentReservation[0].arrived_at,
+                    parked_at: currentReservation[0].parked_at,
+                    reservation_id: currentReservation[0].id,
+                    spot: spots[0],
+                };
+            }
+            if (currentArrivedTasks.length > 0) {
+                const vehicles = await vehicleModel.getById(
+                    currentArrivedTasks[0].vehicle_id,
+                );
+                const lots = await lotModel.getById(
+                    currentArrivedTasks[0].lot_id,
+                );
+                const spots = await spotsModel.getBySecret(
+                    currentArrivedTasks[0].spot_hash,
+                );
+                reservation_info = {
+                    vehicle: vehicles[0],
+                    parking_lot: lots[0],
+                    status: 'ARRIVED',
+                    reserved_at: currentArrivedTasks[0].reserved_at,
+                    arrived_at: currentArrivedTasks[0].arrived_at,
+                    parked_at: currentArrivedTasks[0].parked_at,
+                    reservation_id: currentArrivedTasks[0].id,
+                    spot: spots[0],
+                };
+            }
+            if (currentParkedTasks.length > 0) {
+                const vehicles = await vehicleModel.getById(
+                    currentParkedTasks[0].vehicle_id,
+                );
+                const lots = await lotModel.getById(
+                    currentParkedTasks[0].lot_id,
+                );
+                const spots = await spotsModel.getBySecret(
+                    currentParkedTasks[0].spot_hash,
+                );
+                reservation_info = {
+                    vehicle: vehicles[0],
+                    parking_lot: lots[0],
+                    status: 'PARKED',
+                    reserved_at: currentParkedTasks[0].reserved_at,
+                    arrived_at: currentParkedTasks[0].arrived_at,
+                    parked_at: currentParkedTasks[0].parked_at,
+                    reservation_id: currentParkedTasks[0].id,
+                    spot: spots[0],
+                };
+            }
+        }
+        const card_information = await stripeCustomer.getCardsByCustomerId(
+            user.user.stripe_customer_id,
+        );
+        const notification_requests = await notificationRequestsModel
+            .getRequestedOrErrorByUserId(id);
+        const notification_requests_map = {}
+        await notification_requests.forEach((object) => {
+            notification_requests_map[object.lot_id] = object
+        });
+        return res
+            .status(200)
+            .json({
+                data: user,
+                reservation_info,
+                card_information,
+                notification_requests_map,
+                msg: 'User info was found',
+            });
     } catch (err) {
         console.log(err);
         return res
