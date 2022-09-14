@@ -110,8 +110,6 @@ router.put('/spot', async function(req, res) {
                 reservation_info,
             );
             reservation_status = status.reservation_status;
-
-
             spot_update_status = await spotsModel.updateSpotStatus(spot_data);
 
             // calculate elapsed time, calculate price, execute payment
@@ -239,7 +237,7 @@ router.put('/spot', async function(req, res) {
                 .map((notification_request) => notification_request.email)
 
             mailer.sendAvailabilityNotification(
-                user_emails,
+                user_emails.join(','),
                 lot_info[0].name,
                 async function(result) {
                     if (result.status === 'failed') {
