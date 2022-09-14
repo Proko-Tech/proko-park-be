@@ -48,8 +48,25 @@ async function getByLotIdAndStatusJoinUsers(lot_id, status) {
     return result;
 }
 
+/**
+ * get requested and error notification requests by [user_id]
+ * @param user_id
+ * @returns {Promise<awaited Knex.QueryBuilder<TRecord, ArrayIfAlready<TResult, DeferredKeySelection<TRecord, string>>>>}
+ */
+async function getRequestedAndErrorByUserId(user_id) {
+    const rows = await db('notification_requests')
+        .where({user_id})
+        .andWhere(function() {
+            this.where('status', 'REQUESTED')
+                .orWhere('status', 'ERROR')
+        })
+        .select('*');
+    return rows;
+}
+
 module.exports = {
     getByLotIdAndStatus,
     getByLotIdAndStatusJoinUsers,
     updateRequestedOrErrorByLotId,
+    getRequestedAndErrorByUserId,
 };
