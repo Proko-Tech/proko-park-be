@@ -7,6 +7,7 @@ const reservationsModel = require('../../../../database/models/reservationModel'
 const spotsModel = require('../../../../database/models/spotsModel');
 const vehiclesModel = require('../../../../database/models/vehiclesModel');
 const usersModel = require('../../../../database/models/usersModel');
+const notificationRequestsModel = require('../../../../database/models/notificationRequestsModel');
 
 const mailer = require('../../../modules/mailer');
 
@@ -222,15 +223,37 @@ router.put('/spot', async function(req, res) {
             spot_update_status.spot_status === 'success' &&
             lot_status === 'success' &&
             reservation_status === 'success';
-        if (is_update_success) {
-            return res
-                .status(200)
-                .json({status: 'success', data: 'Parking lot updated'});
-        } else {
+        if (!is_update_success) {
             return res
                 .status(404)
                 .json({status: 'failed', data: 'Parking lot not updated'});
         }
+
+        if (is_parked_to_exit || is_violation_to_exit) {
+            const lot_info = await lotsModel.getById(lot_data.id);
+            const notification_requests = await notificationRequestsModel
+                .getByLotIdAndStatusJoinUsers(lot_data.id, 'REQUESTED');
+            const user_emails = notification_requests
+                .map((notification_request) => notification_request.email)
+
+            mailer.sendAvailabilityNotification(
+                user_emails.join(','),
+                lot_info[0].name,
+                async function(result) {
+                    if (result.status === 'failed') {
+                        await notificationRequestsModel
+                            .updateRequestedOrErrorByLotId(
+                                lot_data.id, {status: 'ERROR'});
+                    }
+                    await notificationRequestsModel
+                        .updateRequestedOrErrorByLotId(
+                            lot_data.id, {status: 'SENT'});
+                });
+        }
+
+        return res
+            .status(200)
+            .json({status: 'success', data: 'Parking lot updated'});
     } catch (err) {
         console.log(err);
         return res

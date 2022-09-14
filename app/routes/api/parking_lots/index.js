@@ -111,10 +111,10 @@ router.post('/closest', async function(req, res) {
 });
 
 router.post('/notification', async function(req, res) {
-    const {user_id, lot_id, status} = req.body;
+    const {user_id, lot_id} = req.body;
     try {
         const notification_requests = await notificationRequestModel
-            .getByUserAndLotIdAndStatus(user_id, lot_id, status);
+            .getRequestedOrErrorByUserIdAndLotId(user_id, lot_id);
         if (notification_requests.length === 0) {
             return res
                 .status(400)
