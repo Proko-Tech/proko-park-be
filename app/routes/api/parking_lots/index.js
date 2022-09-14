@@ -3,6 +3,7 @@ const router = express.Router();
 
 const lotsModel = require('../../../../database/models/lotsModel');
 const spotsModel = require('../../../../database/models/spotsModel');
+const notificationRequestModel = require('../../../../database/models/notificationRequestsModel');
 
 router.get('/search/:payload', async function(req, res) {
     const {payload} = req.params;
@@ -108,5 +109,54 @@ router.post('/closest', async function(req, res) {
             });
     }
 });
+
+router.post('/notification', async function(req, res){
+    const {user_id, lot_id, status} = req.body;
+    try {
+        const result = await notificationRequestModel.getByUserAndLotIdAndStatus(user_id, lot_id, status);
+        const freeSpots = spotsModel.getUnoccupiedByLotId(lot_id);
+        if (result.length === 0) {
+            return res
+                .status(400)
+                .json({
+                    err,
+                    status: 'failed',
+                    data: 'FORBIDDEN ALREADY EXISTS',
+                });
+        }
+        if (freeSpots.length !== 0) {
+            return res
+                .status(400)
+                .json({
+                    err,
+                    status: 'failed',
+                    data: 'FORBIDDEN',
+                });
+        }
+        const notification = notificationRequestModel.insert(user_id, lot_id);
+        if (notification.status === 'failed') {
+            return res
+                .status(500)
+                .json({
+                    err,
+                    status: 'failed',
+                    data: 'INSERT FAILED',
+                });
+        }
+
+        return res
+            .status(200)
+            .json({status: 'success', data: notification});
+
+    } catch (err) {
+        return res
+            .status(400)
+            .json({
+                err,
+                status: 'failed',
+                data: 'FORBIDDEN',
+            });
+    }
+})
 
 module.exports = router;

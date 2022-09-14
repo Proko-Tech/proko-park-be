@@ -199,7 +199,7 @@ const sendAvailabilityNotification = (
     receiverEmail,
     lot_name,
     callback,
-    ) => {
+) => {
     ejs.renderFile(
         path.join(__dirname, '..', 'views/AvailabilityNotification.ejs'),
         {first_name, lot_name},
@@ -229,7 +229,7 @@ const sendAvailabilityNotification = (
                     }
                 });
             }
-        }
+        },
     )
 }
 

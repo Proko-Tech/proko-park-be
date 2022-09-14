@@ -13,7 +13,7 @@ router.post('/', async function(req, res) {
     try {
         const {userData} = req.body;
         const result = await usersModel.getByEmail(userData.email);
-
+        console.log(result, userData.email)
         const isUserExist = !(result.length === 0);
         const isSignUpNative = isUserExist ?
             result[0].sign_up_type === 'NATIVE' :
