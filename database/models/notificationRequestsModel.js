@@ -5,7 +5,7 @@ const db = require('../dbConfig');
  * @param user_id
  * @returns {Promise<awaited Knex.QueryBuilder<TRecord, ArrayIfAlready<TResult, DeferredKeySelection<TRecord, string>>>>}
  */
-async function getRequestedAndErrorByUserId(user_id) {
+async function getRequestedOrErrorByUserId(user_id) {
     const rows = await db('notification_requests')
         .where({user_id})
         .andWhere(function() {
@@ -16,4 +16,4 @@ async function getRequestedAndErrorByUserId(user_id) {
     return rows;
 }
 
-module.exports={getRequestedAndErrorByUserId}
+module.exports={getRequestedOrErrorByUserId}
