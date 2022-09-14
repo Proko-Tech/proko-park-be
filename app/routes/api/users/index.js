@@ -312,7 +312,7 @@ router.get('/:id', async function(req, res) {
             user.user.stripe_customer_id,
         );
         const notification_requests = await notificationRequestsModel
-            .getRequestedAndErrorByUserId(id);
+            .getRequestedOrErrorByUserId(id);
         const notification_requests_map = {}
         await notification_requests.forEach((object) => {
             notification_requests_map[object.lot_id] = object
@@ -323,7 +323,6 @@ router.get('/:id', async function(req, res) {
                 data: user,
                 reservation_info,
                 card_information,
-                notification_requests,
                 notification_requests_map,
                 msg: 'User info was found',
             });
