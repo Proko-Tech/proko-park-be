@@ -7,7 +7,6 @@ const reservationsModel = require('../../../../database/models/reservationModel'
 const spotsModel = require('../../../../database/models/spotsModel');
 const vehiclesModel = require('../../../../database/models/vehiclesModel');
 const usersModel = require('../../../../database/models/usersModel');
-const notificationRequestModel = require('../../../../database/models/notificationRequestsModel');
 
 const mailer = require('../../../modules/mailer');
 
@@ -110,31 +109,6 @@ router.put('/spot', async function(req, res) {
                 reservation_info,
             );
             reservation_status = status.reservation_status;
-
-            const availableSpots = await spotsModel.getUnoccupiedReservableByLotId(lot_data.id);
-            const isParkingLotFull = availableSpots.length === 0;
-            if (isParkingLotFull) {
-                const notificationRequested = await notificationRequestModel.getByLotIdAndStatus(lot_data.id, 'REQUESTED');
-                for (let i = 0; i < notificationRequested.length; i++) {
-                    const user = await usersModel.getById(notificationRequested[i].user_id);
-                    await mailer.sendAvailabilityNotification(
-                        user[0].first_name,
-                        user[0].email,
-                        lot_data.name,
-                        async function(err,res){
-                            const notificationUpdateInfo = {
-                                status: 'SENT',
-                            };
-                            if (err) {
-                                console.log(err);
-                                notificationUpdateInfo.status = 'ERROR';
-                            }
-                            await notificationRequestModel.updateById(notificationRequested[i].id, notificationUpdateInfo);
-                        },
-                    )
-                }
-            }
-
             spot_update_status = await spotsModel.updateSpotStatus(spot_data);
 
             // calculate elapsed time, calculate price, execute payment
@@ -241,31 +215,6 @@ router.put('/spot', async function(req, res) {
             spot_update_status = await spotsModel.updateSpotStatus(spot_data);
         } else if (is_violation_to_exit) {
             reservation_status = 'success';
-
-            const availableSpots = await spotsModel.getUnoccupiedReservableByLotId(lot_data.id);
-            const isParkingLotFull = availableSpots.length === 0;
-            if (isParkingLotFull) {
-                const notificationRequested = await notificationRequestModel.getByLotIdAndStatus(lot_data.id, 'REQUESTED')
-                for (let i = 0; i < notificationRequested.length; i++) {
-                    const user = await usersModel.getById(notificationRequested[i].user_id)
-                    await mailer.sendAvailabilityNotification(
-                        user[0].first_name,
-                        user[0].email,
-                        lot_data.name,
-                        async function(err,res){
-                            const notificationUpdateInfo = {
-                                status: 'SENT',
-                            };
-                            if(err) {
-                                console.log(err);
-                                notificationUpdateInfo.status = 'ERROR';
-                            }
-                            await notificationRequestModel.updateById(notificationRequested[i].id, notificationUpdateInfo)
-                        },
-                    )
-                }
-            }
-
             spot_update_status = await spotsModel.updateSpotStatus(spot_data);
         }
 

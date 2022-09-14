@@ -194,49 +194,9 @@ const sendCoownVehicleInvitation = (user, inviter, vehicle, callback) => {
     );
 };
 
-const sendAvailabilityNotification = (
-    first_name,
-    receiverEmail,
-    lot_name,
-    callback,
-) => {
-    ejs.renderFile(
-        path.join(__dirname, '..', 'views/AvailabilityNotification.ejs'),
-        {first_name, lot_name},
-        function(err, data) {
-            if (err) {
-                console.log(err);
-            } else {
-                const mailOptions = {
-                    from: process.env.EMAILUSER,
-                    to: receiverEmail,
-                    subject: 'Proko Park: Availability Notification',
-                    html: data,
-                };
-                transporter.sendMail(mailOptions, function(error, info) {
-                    if (error) {
-                        console.log(error);
-                        callback({
-                            status: false,
-                            message: 'EMAIL SEND FAIL',
-                        });
-                    } else {
-                        // console.log('Email sent: ' + info.response);
-                        callback({
-                            status: true,
-                            message: 'EMAIL SENT',
-                        });
-                    }
-                });
-            }
-        },
-    )
-}
-
 module.exports = {
     sendEmail,
     sendReservationConfirmation,
     sendReceipt,
     sendCoownVehicleInvitation,
-    sendAvailabilityNotification,
 };

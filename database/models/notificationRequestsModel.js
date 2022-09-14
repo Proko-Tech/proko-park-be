@@ -5,45 +5,16 @@ const db = require('../dbConfig');
  * @param lot_id
  * @returns {Rows in notification_requests table}
  */
-async function insert(user_id, lot_id) {
+async function insert(payload) {
     try {
         await db('notification_requests')
-            .insert({user_id,lot_id,status:'REQUESTED'});
+            .insert(payload);
         return {status: 'success'};
     } catch (err) {
         return {status: 'failed'};
     }
 }
 
-/**
- * get all notification requests by enum type and lot id
- * @param lot_id
- * @returns {Rows in notification_requests table}
- */
-async function getByUserAndLotIdAndStatus(user_id, lot_id, status) {
-    const result = await db('notification_requests')
-        .where({lot_id})
-        .andWhere({user_id})
-        .andWhere({status: status})
-        .select('*');
-    return result;
-}
-
-/**
- * update by id
- * @param id
- * @returns {Promise<{notification_status: string}>}
- */
-async function updateById(id, update_body) {
-    try {
-        await db('notification_requests')
-            .where({id})
-            .update(update_body);
-        return {notification_status: 'success'};
-    } catch (err) {
-        return {notification_status: 'failed'};
-    }
-}
 /**
  * get requested and error notification requests by [user_id]
  * @param user_id
@@ -62,7 +33,5 @@ async function getRequestedOrErrorByUserId(user_id) {
 
 module.exports = {
     insert,
-    getByUserAndLotIdAndStatus,
-    updateById,
-    getRequestedOrErrorByUserId
+    getRequestedOrErrorByUserId,
 };

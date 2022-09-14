@@ -110,37 +110,42 @@ router.post('/closest', async function(req, res) {
     }
 });
 
-router.post('/notification', async function(req, res){
+router.post('/notification', async function(req, res) {
     const {user_id, lot_id, status} = req.body;
     try {
-        const result = await notificationRequestModel.getByUserAndLotIdAndStatus(user_id, lot_id, status);
-        const freeSpots = spotsModel.getUnoccupiedByLotId(lot_id);
-        if (result.length === 0) {
+        const notification_requests = await notificationRequestModel
+            .getByUserAndLotIdAndStatus(user_id, lot_id, status);
+        if (notification_requests.length === 0) {
             return res
                 .status(400)
                 .json({
                     err,
                     status: 'failed',
-                    data: 'FORBIDDEN ALREADY EXISTS',
+                    msg: 'You already have a notification turned ' +
+                        'on for this spot',
                 });
         }
-        if (freeSpots.length !== 0) {
+
+        const free_spots = spotsModel.getUnoccupiedByLotId(lot_id);
+        if (free_spots.length !== 0) {
             return res
                 .status(400)
                 .json({
                     err,
                     status: 'failed',
-                    data: 'FORBIDDEN',
+                    msg: 'A free spot is found in this garage',
                 });
         }
-        const notification = notificationRequestModel.insert(user_id, lot_id);
+
+        const notification = await notificationRequestModel
+            .insert({user_id, lot_id, status: 'REQUESTED'});
         if (notification.status === 'failed') {
             return res
                 .status(500)
                 .json({
                     err,
                     status: 'failed',
-                    data: 'INSERT FAILED',
+                    msg: 'Insert failed due to server error',
                 });
         }
 
@@ -150,11 +155,11 @@ router.post('/notification', async function(req, res){
 
     } catch (err) {
         return res
-            .status(400)
+            .status(500)
             .json({
                 err,
                 status: 'failed',
-                data: 'FORBIDDEN',
+                msg: 'Insert failed due to server error',
             });
     }
 })
