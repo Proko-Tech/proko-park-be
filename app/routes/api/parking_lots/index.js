@@ -3,6 +3,7 @@ const router = express.Router();
 
 const lotsModel = require('../../../../database/models/lotsModel');
 const spotsModel = require('../../../../database/models/spotsModel');
+const notificationRequestModel = require('../../../../database/models/notificationRequestsModel');
 
 router.get('/search/:payload', async function(req, res) {
     const {payload} = req.params;
@@ -108,5 +109,59 @@ router.post('/closest', async function(req, res) {
             });
     }
 });
+
+router.post('/notification', async function(req, res) {
+    const {user_id, lot_id} = req.body;
+    try {
+        const notification_requests = await notificationRequestModel
+            .getRequestedOrErrorByUserIdAndLotId(user_id, lot_id);
+        if (notification_requests.length === 0) {
+            return res
+                .status(400)
+                .json({
+                    err,
+                    status: 'failed',
+                    msg: 'You already have a notification turned ' +
+                        'on for this spot',
+                });
+        }
+
+        const free_spots = spotsModel.getUnoccupiedByLotId(lot_id);
+        if (free_spots.length !== 0) {
+            return res
+                .status(400)
+                .json({
+                    err,
+                    status: 'failed',
+                    msg: 'A free spot is found in this garage',
+                });
+        }
+
+        const notification = await notificationRequestModel
+            .insert({user_id, lot_id, status: 'REQUESTED'});
+        if (notification.status === 'failed') {
+            return res
+                .status(500)
+                .json({
+                    err,
+                    status: 'failed',
+                    msg: 'Insert failed due to server error',
+                });
+        }
+
+        return res
+            .status(200)
+            .json({status: 'success', data: notification});
+
+    } catch (err) {
+        return res
+            .status(500)
+            .json({
+                err,
+                status: 'failed',
+                msg: 'Insert failed due to server error',
+            });
+    }
+})
 
 module.exports = router;

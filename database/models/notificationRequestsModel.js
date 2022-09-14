@@ -34,6 +34,22 @@ async function updateRequestedOrErrorByLotId(lot_id, payload) {
 }
 
 /**
+ * insert a new notification request.
+ * @param payload
+ * @returns {Promise<{status: string}>}
+ */
+async function insert(payload) {
+    try {
+        await db('notification_requests')
+            .insert(payload);
+        return {status: 'success'};
+    } catch (err) {
+        return {status: 'failed'};
+    }
+}
+
+
+/**
  * get by lot id and status join users table on user_id
  * @param lot_id
  * @param status
@@ -53,9 +69,27 @@ async function getByLotIdAndStatusJoinUsers(lot_id, status) {
  * @param user_id
  * @returns {Promise<awaited Knex.QueryBuilder<TRecord, ArrayIfAlready<TResult, DeferredKeySelection<TRecord, string>>>>}
  */
-async function getRequestedAndErrorByUserId(user_id) {
+async function getRequestedOrErrorByUserId(user_id) {
     const rows = await db('notification_requests')
         .where({user_id})
+        .andWhere(function() {
+            this.where('status', 'REQUESTED')
+                .orWhere('status', 'ERROR')
+        })
+        .select('*');
+    return rows;
+}
+
+/**
+ * get requested and error by user id and lot id.
+ * @param user_id
+ * @param lot_id
+ * @returns {Promise<awaited Knex.QueryBuilder<TRecord, ArrayIfAlready<TResult, DeferredKeySelection<TRecord, string>>>>}
+ */
+async function getRequestedOrErrorByUserIdAndLotId(user_id, lot_id) {
+    const rows = await db('notification_requests')
+        .where({user_id})
+        .andWhere({lot_id})
         .andWhere(function() {
             this.where('status', 'REQUESTED')
                 .orWhere('status', 'ERROR')
@@ -68,5 +102,7 @@ module.exports = {
     getByLotIdAndStatus,
     getByLotIdAndStatusJoinUsers,
     updateRequestedOrErrorByLotId,
-    getRequestedAndErrorByUserId,
+    insert,
+    getRequestedOrErrorByUserId,
+    getRequestedOrErrorByUserIdAndLotId,
 };
