@@ -108,7 +108,7 @@ async function deleteByUserId(user_id) {
  * @param assignToUsers
  * @returns {Promise<void>}
  */  
-async function batchInsertTransferOwnership(assignToUsers) {
+async function batchInsertOwnership(assignToUsers) {
     await db('vehicle_ownership').insert(assignToUsers)
 }
 
@@ -131,7 +131,7 @@ module.exports = {
     getByUserId,
     deleteById,
     deleteByUserId,
-    batchInsertTransferOwnership,
+    batchInsertOwnership,
     updateByUserIdAndVehicleId,
     getOwnershipJoinUser,
 };

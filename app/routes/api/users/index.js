@@ -389,7 +389,7 @@ router.delete('/', async function(req, res) {
                 }
                 insertList.forEach(convertEmailToUserId);
             }
-            await vehicleOwnershipModel.batchInsertTransferOwnership(
+            await vehicleOwnershipModel.batchInsertOwnership(
                 insertList, 
             )
             const newOwnership = {is_primary_owner: 1, status: 'ACCEPTED'};
