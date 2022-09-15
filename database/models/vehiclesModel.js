@@ -116,24 +116,12 @@ async function deleteByIdTransactOwnership(id) {
 }
 
 /**
- * delete vehicle & ownership information by a list of vehicle IDs
+ * batch delete vehicle information by a list of vehicle IDs
  * @param idList
  * @returns {Promise<void>}
  */
- async function batchDeleteByIdTransactOwnership(idList) {
-    await db.transaction(async (transaction) => {
-        try {
-            await db('vehicles').transacting(transaction).whereIn('id', idList).del();
-            await db('vehicle_ownership')
-                .whereIn('vehicle_id', idList)
-                .del()
-                .transacting(transaction);
-            await transaction.commit();
-        } catch (err) {
-            console.log(err);
-            await transaction.rollback();
-        }
-    });
+ async function batchDeleteById(idList) {
+    await db('vehicles').whereIn('id', idList).del();
 }
 
 module.exports = {
@@ -143,5 +131,5 @@ module.exports = {
     updateById,
     insertPrimaryOwner,
     deleteByIdTransactOwnership,
-    batchDeleteByIdTransactOwnership,
+    batchDeleteById,
 };

@@ -333,18 +333,18 @@ router.delete('/', async function(req, res) {
     const {actions} = req.body;
 
     try {
-        //Delete co-owned vehicles by removing ownership from db
-        const coOwnedVehicles = await vehicleOwnershipModel.getCoOwnedByUserId(id);
-        const coOwnedExists = coOwnedVehicles.length !== 0;
-        if (coOwnedExists) {
-            await vehicleOwnershipModel.deleteCoOwnedByUserId(id);
+        //Delete all vehicle ownership records
+        const vehicleOwnership = await vehicleOwnershipModel.getByUserId(id);
+        const vehicleOwnershipExists = vehicleOwnership.length !== 0;
+        if (vehicleOwnershipExists) {
+            await vehicleOwnershipModel.deleteByUserId(id);
         }
     
-        // Delete all primary vehicles
-        const deletablePrimaryVehicles = actions.map(action => action.vehicle.id) // List of ID
+        // Delete all primary vehicles specified by user
+        const deletablePrimaryVehicles = actions.filter(action => action.action === 'DELETE').map(action => action.vehicle.id) // List of ID
         const deletablePrimaryVehiclesExists = deletablePrimaryVehicles.length !== 0;
         if (deletablePrimaryVehiclesExists) {
-            await vehicleModel.batchDeleteByIdTransactOwnership(deletablePrimaryVehicles)
+            await vehicleModel.batchDeleteById(deletablePrimaryVehicles)
         }
 
         // Reassign all primary vehicles specified by user
