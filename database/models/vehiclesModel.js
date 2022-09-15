@@ -122,6 +122,7 @@ async function deleteByIdTransactOwnership(id) {
  */
 async function batchDeleteById(idList) {
     await db('vehicles').whereIn('id', idList).del();
+    await db('vehicle_ownership').whereIn('vehicle_id', idList).del()
 }
 
 module.exports = {
