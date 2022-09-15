@@ -342,7 +342,8 @@ router.delete('/', async function(req, res) {
     
         // Delete all primary vehicles specified by user
         const deletablePrimaryVehicles = actions.filter((action) => action.action === 'DELETE').map((action) => action.vehicle.id) // List of ID
-        const deletablePrimaryVehiclesExists = deletablePrimaryVehicles.length !== 0;
+        const deletablePrimaryVehiclesExists = 
+            deletablePrimaryVehicles.length !== 0;
         if (deletablePrimaryVehiclesExists) {
             await vehicleModel.batchDeleteById(deletablePrimaryVehicles)
         }
@@ -352,22 +353,42 @@ router.delete('/', async function(req, res) {
         const vehiclesToAssignExists = vehiclesToAssign.length !== 0;
 
         if (vehiclesToAssignExists) {
-            const ownershipAndUsers = await vehicleOwnershipModel.getOwnershipJoinUser();
+            const ownershipAndUsers = await vehicleOwnershipModel
+                .getOwnershipJoinUser();
             const updateList = [];
             const insertList = [];
             const createQueryLists = (action) => {
                 // Index of vehicle that already exists in db
-                const index = ownershipAndUsers.findIndex((row) => action.reassigned_user === row.email & action.vehicle.id === row.vehicle_id & !row.is_primary_owner)
+                const index = ownershipAndUsers.findIndex((row) => 
+                    action.reassigned_user === row.email & 
+                    action.vehicle.id === row.vehicle_id & 
+                    !row.is_primary_owner,
+                )
                 if (index !== -1) {
-                    updateList.push({user_id: ownershipAndUsers[index].user_id, vehicle_id: ownershipAndUsers[index].vehicle_id});
+                    updateList.push({
+                        user_id: ownershipAndUsers[index].user_id, 
+                        vehicle_id: ownershipAndUsers[index].vehicle_id});
                 } else {
-                    const convertedEmailIndex = ownershipAndUsers.findIndex((row) => row.email === action.reassigned_user)
-                    insertList.push({vehicle_id: action.vehicle.id, is_primary_owner: 1, status: 'ACCEPTED', user_id: ownershipAndUsers[convertedEmailIndex].id});
+                    const convertedEmailIndex = ownershipAndUsers.findIndex(
+                        (row) => row.email === action.reassigned_user,
+                    )
+                    insertList.push({
+                        vehicle_id: action.vehicle.id, 
+                        is_primary_owner: 1, status: 'ACCEPTED', 
+                        user_id: ownershipAndUsers[convertedEmailIndex].id});
                 }
             }
             vehiclesToAssign.forEach(createQueryLists) // Populate lists
-            await vehicleOwnershipModel.batchInsertTransferOwnership(insertList, id)
-            updateList.forEach(async (update) => await vehicleOwnershipModel.batchUpdateTransferOwnership(update))
+            await vehicleOwnershipModel.batchInsertTransferOwnership(
+                insertList, 
+                id,
+            )
+            updateList.forEach(
+                async (update) => 
+                    await vehicleOwnershipModel.batchUpdateTransferOwnership(
+                        update,
+                    ),
+            )
         }
 
         // Delete user information from user table
