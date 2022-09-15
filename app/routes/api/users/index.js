@@ -353,8 +353,7 @@ router.delete('/', async function(req, res) {
         const vehiclesToAssignExists = vehiclesToAssign.length !== 0;
 
         if (vehiclesToAssignExists) {
-            const ownershipAndUsers = await vehicleOwnershipModel
-                .getOwnershipJoinUser();
+            const ownershipAndUsers = await vehicleOwnershipModel.getOwnershipJoinUser();
             const updateList = [];
             const insertList = [];
             const createQueryLists = (action) => {
