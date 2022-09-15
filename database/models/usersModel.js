@@ -112,11 +112,11 @@ async function deleteById(id) {
  * @param emails
  * @returns {Promise<void>}
  */
- async function convertEmailToUserId(emails) {
+async function convertEmailToUserId(emails) {
     console.log(emails)
     const ids = await db('users').whereIn('email', emails).select('id', 'email').orderByRaw(`FIND_IN_SET(\`email\`, '${emails}')`); // Preserve query order
     console.log(ids)
-    return ids.map(row => row.id)
+    return ids.map((row) => row.id)
 }
 
 module.exports = {

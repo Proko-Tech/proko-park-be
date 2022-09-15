@@ -38,7 +38,7 @@ async function getByVehicleIdJoinUser(vehicle_id) {
  * @param vehicle_id
  * @returns {Promise<void>}
  */
- async function getOwnershipJoinUser() {
+async function getOwnershipJoinUser() {
     const result = await db('users')
         .leftJoin('vehicle_ownership', 'users.id', 'vehicle_ownership.user_id')
         .select('vehicle_ownership.user_id', 'users.id', 'email', 'is_primary_owner', 'vehicle_id');
@@ -79,7 +79,7 @@ async function getById(id) {
  * @param id
  * @returns {Promise<void>}
  */
- async function getByUserId(user_id) {
+async function getByUserId(user_id) {
     const result = await db('vehicle_ownership').select('*').where({user_id});
     return result;
 }
@@ -98,19 +98,24 @@ async function deleteById(id) {
  * @param id
  * @returns {Promise<void>}
  */
- async function deleteByUserId(user_id) {
+async function deleteByUserId(user_id) {
     await db('vehicle_ownership').where({user_id}).del();
 }
 
 /**
- * delete vehicle & ownership information by a list of ...
- * @param 
+ * Inserts new ownership records
+ * @param assignToUsers
  * @returns {Promise<void>}
  */  
- async function batchInsertTransferOwnership(assignToUsers) {
+async function batchInsertTransferOwnership(assignToUsers) {
     await db('vehicle_ownership').insert(assignToUsers)
 }
 
+/**
+ * Updates new ownership record
+ * @param row
+ * @returns {Promise<void>}
+ */ 
 async function batchUpdateTransferOwnership(row) {
     await db('vehicle_ownership').where({user_id: row.user_id, vehicle_id: row.vehicle_id}).update({is_primary_owner: 1, status: 'ACCEPTED'})
 }

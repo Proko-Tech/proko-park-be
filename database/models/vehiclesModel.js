@@ -120,7 +120,7 @@ async function deleteByIdTransactOwnership(id) {
  * @param idList
  * @returns {Promise<void>}
  */
- async function batchDeleteById(idList) {
+async function batchDeleteById(idList) {
     await db('vehicles').whereIn('id', idList).del();
 }
 
