@@ -340,7 +340,7 @@ router.delete('/', async function(req, res) {
             await vehicleOwnershipModel.deleteByUserId(id);
         }
     
-        // Delete all primary vehicles specified by user
+        // Delete all primary vehicles specified by user + any ownership records belonging to any co-owners
         const deletablePrimaryVehicles = actions.filter((action) => action.action === 'DELETE').map((action) => action.vehicle.id) // List of ID
         const deletablePrimaryVehiclesExists = 
             deletablePrimaryVehicles.length !== 0;
@@ -353,40 +353,52 @@ router.delete('/', async function(req, res) {
         const vehiclesToAssignExists = vehiclesToAssign.length !== 0;
 
         if (vehiclesToAssignExists) {
-            const ownershipAndUsers = await vehicleOwnershipModel.getOwnershipJoinUser();
+            const vehicleIds = actions.map(action => action.vehicle.id)
+            const ownershipAndUsers = await vehicleOwnershipModel.getOwnershipJoinUser(vehicleIds);
             const updateList = [];
             const insertList = [];
             const createQueryLists = (action) => {
-                // Index of vehicle that already exists in db
-                const index = ownershipAndUsers.findIndex((row) => 
-                    action.reassigned_user === row.email & 
-                    action.vehicle.id === row.vehicle_id & 
-                    !row.is_primary_owner,
+                // Checks if person you are reassigning vehicle to is a co-owner
+                const coOwnerIndex = ownershipAndUsers.findIndex((row) => 
+                    action.reassigned_user === row.email & !row.is_primary_owner,
                 )
-                if (index !== -1) {
+                // Add information to update list if the target reassignment is a co-owner
+                if (coOwnerIndex !== -1) {
                     updateList.push({
-                        user_id: ownershipAndUsers[index].user_id, 
-                        vehicle_id: ownershipAndUsers[index].vehicle_id});
+                        user_id: ownershipAndUsers[coOwnerIndex].user_id, 
+                        vehicle_id: ownershipAndUsers[coOwnerIndex].vehicle_id});
+                    return;
                 } else {
-                    const convertedEmailIndex = ownershipAndUsers.findIndex(
-                        (row) => row.email === action.reassigned_user,
-                    )
+                    // Otherwise, store new row information of non-cowowners (don't exist in ownershipAndUsers)
                     insertList.push({
                         vehicle_id: action.vehicle.id, 
                         is_primary_owner: 1, status: 'ACCEPTED', 
-                        user_id: ownershipAndUsers[convertedEmailIndex].id});
+                        user_id: action.reassigned_user,
+                    });
                 }
             }
+
             vehiclesToAssign.forEach(createQueryLists) // Populate lists
+
+            // If there are rows to be inserted, convert emails to user ID
+            if (insertList.length !== 0) {
+                const newOwnerIds = await userModel.batchSelectByEmail(insertList.map(row => row.user_id));
+                const convertEmailToUserId = (insertRow, index, array) => {
+                    const indexOfUserId = newOwnerIds.findIndex(idRow => idRow.email === insertRow.user_id)
+                    array[index].user_id = newOwnerIds[indexOfUserId].id
+                }
+                insertList.forEach(convertEmailToUserId);
+            }
             await vehicleOwnershipModel.batchInsertTransferOwnership(
                 insertList, 
-                id,
             )
+            const newOwnership = {is_primary_owner: 1, status: 'ACCEPTED'};
             updateList.forEach(
                 async (update) => 
-                    await vehicleOwnershipModel.batchUpdateTransferOwnership(
+                    await vehicleOwnershipModel.updateByUserIdAndVehicleId(
                         update,
-                    ),
+                        newOwnership,
+                ),
             )
         }
 
@@ -397,6 +409,7 @@ router.delete('/', async function(req, res) {
         await userModel.deleteById(id);
         return res.status(200).json({status: "success", message: "Successfully deleted user account"});
     } catch (err) {
+        console.log(err)
         return res.status(500)
             .json({err, message: 'Unable to delete user account due to server error'});
     }
