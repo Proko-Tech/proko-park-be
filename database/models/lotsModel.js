@@ -15,6 +15,19 @@ async function getByIdAndHash(id, hash) {
 }
 
 /**
+ * Get parking lot from db by id and join spots.
+ * @param id
+ * @returns {Promise<awaited Knex.QueryBuilder<TRecord, ArrayIfAlready<TResult, DeferredKeySelection<TRecord, string>>>>}
+ */
+async function getByIdJoinSpots(id) {
+    const result = await db('lots')
+        .where('lots.id', id)
+        .join('spots', 'spots.lot_id', 'lots.id')
+        .select('*');
+    return result;
+}
+
+/**
  * Update lot to alive based on id and hash
  * @param lot_info
  * @returns {Promise<{lot_status: string}>}
@@ -139,6 +152,7 @@ async function getClosestByLatLong(lat, long) {
         .select('*');
     const result = await Promise.all(
         lots.map(async (lot) => {
+            const all_spots = await getByIdJoinSpots(lot.id);
             const spots = await spotsModel.getUnoccupiedByLotId(lot.id);
             const electric_spots =
                 await spotsModel.getUnoccupiedElectricByLotId(lot.id);
@@ -146,6 +160,7 @@ async function getClosestByLatLong(lat, long) {
                 await spotsModel.getUnoccupiedReservableByLotId(lot.id);
             const lot_info = {
                 ...lot,
+                spots: all_spots,
                 available_spots: spots.length,
                 available_electric_spots: electric_spots.length,
                 available_reservable_spots: reservable_spots.length,
@@ -191,6 +206,7 @@ async function getByAlikeNameOrAddress(payload) {
 
 module.exports = {
     getByIdAndHash,
+    getByIdJoinSpots,
     markLotAliveStatusByIdAndHash,
     getLotAndSpotsByHash,
     getAndUnoccupiedSpotNumsById,
