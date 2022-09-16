@@ -43,16 +43,17 @@ router.get('/search/:payload', async function(req, res) {
     }
 });
 
-router.get('/:id', async function(req, res) {
-    const {id} = req.params;
+router.get('/:lot_id', async function(req, res) {
+    const {lot_id} = req.params;
     try {
-        const result = await lotsModel.getAndUnoccupiedSpotNumsById(id);
+        const result = await lotsModel.getAndUnoccupiedSpotNumsById(lot_id);
+        result.spots = await lotsModel.getByIdJoinSpots(lot_id);
         result.available_electric_spots =
-            await lotsModel.getAndUnoccupiedElectricSpotNumsById(id);
+            await lotsModel.getAndUnoccupiedElectricSpotNumsById(lot_id);
         result.available_reservable_spots =
-            await lotsModel.getAndReservableSpotNumsById(id);
+            await lotsModel.getAndReservableSpotNumsById(lot_id);
         result.available_non_reservable_spots =
-            await lotsModel.getAndNonReservableSpotNumsById(id);
+            await lotsModel.getAndNonReservableSpotNumsById(lot_id);
         if (result) {
             return res
                 .status(200)
@@ -66,6 +67,7 @@ router.get('/:id', async function(req, res) {
                 });
         }
     } catch (err) {
+        console.log(err)
         return res
             .status(500)
             .json({
