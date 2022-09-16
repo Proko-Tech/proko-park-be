@@ -34,6 +34,19 @@ async function getByVehicleIdJoinUser(vehicle_id) {
 }
 
 /**
+ * get vehicle ownership and users joined table
+ * @param vehicleIds
+ * @returns {Promise<void>}
+ */
+async function getOwnershipJoinUser(vehicleIds) {
+    const result = await db('vehicle_ownership')
+        .join('users', 'vehicle_ownership.user_id', 'users.id')
+        .select('vehicle_ownership.user_id', 'users.id', 'email', 'is_primary_owner', 'vehicle_id')
+        .whereIn('vehicle_id', vehicleIds);
+    return result;
+}
+
+/**
  * insert new record
  * @param insertJson
  * @returns {Promise<{status: string}>}
@@ -63,6 +76,16 @@ async function getById(id) {
 }
 
 /**
+ * Get ownership by id
+ * @param id
+ * @returns {Promise<void>}
+ */
+async function getByUserId(user_id) {
+    const result = await db('vehicle_ownership').select('*').where({user_id});
+    return result;
+}
+ 
+/**
  * Delete ownership by id
  * @param id
  * @returns {Promise<void>}
@@ -71,11 +94,44 @@ async function deleteById(id) {
     await db('vehicle_ownership').where({id}).del();
 }
 
+/**
+ * Delete ownership by user id
+ * @param id
+ * @returns {Promise<void>}
+ */
+async function deleteByUserId(user_id) {
+    await db('vehicle_ownership').where({user_id}).del();
+}
+
+/**
+ * Inserts new ownership records
+ * @param assignToUsers
+ * @returns {Promise<void>}
+ */  
+async function batchInsertOwnership(assignToUsers) {
+    await db('vehicle_ownership').insert(assignToUsers)
+}
+
+/**
+ * Updates new ownership record
+ * @param row
+ * @param ownership
+ * @returns {Promise<void>}
+ */ 
+async function updateByUserIdAndVehicleId(row, ownership) {
+    await db('vehicle_ownership').where({user_id: row.user_id, vehicle_id: row.vehicle_id}).update(ownership)
+}
+
 module.exports = {
     getByUserIdAndVehicleId,
     getByVehicleIdJoinUser,
     insert,
     updateById,
     getById,
+    getByUserId,
     deleteById,
+    deleteByUserId,
+    batchInsertOwnership,
+    updateByUserIdAndVehicleId,
+    getOwnershipJoinUser,
 };

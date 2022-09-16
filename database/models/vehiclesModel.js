@@ -115,6 +115,16 @@ async function deleteByIdTransactOwnership(id) {
     });
 }
 
+/**
+ * batch delete vehicle information by a list of vehicle IDs
+ * @param idList
+ * @returns {Promise<void>}
+ */
+async function batchDeleteById(idList) {
+    await db('vehicles').whereIn('id', idList).del();
+    await db('vehicle_ownership').whereIn('vehicle_id', idList).del()
+}
+
 module.exports = {
     getByUserId,
     getById,
@@ -122,4 +132,5 @@ module.exports = {
     updateById,
     insertPrimaryOwner,
     deleteByIdTransactOwnership,
+    batchDeleteById,
 };
