@@ -107,6 +107,16 @@ async function deleteById(id) {
         .del();
 }
 
+/**
+ * function converts emails to user IDs
+ * @param emails
+ * @returns {Promise<void>}
+ */
+async function batchSelectByEmail(emails) {
+    const ids = await db('users').whereIn('email', emails).select('id', 'email');
+    return ids;
+};
+
 module.exports = {
     getById, 
     getByEmailAndSignupType, 
@@ -116,4 +126,5 @@ module.exports = {
     getByEmail, 
     insert, 
     deleteById,
+    batchSelectByEmail,
 };
