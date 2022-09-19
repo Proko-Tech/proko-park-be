@@ -423,7 +423,7 @@ router.post('/:hash', async function(req, res) {
             });
 
             await slack.sendDefectsNotification(
-                `A new defect has been created for lot: ${result.name}`);
+                `A new defect has been created for lot: *${result.name}*`);
         }
 
         const is_get_and_update_success =
