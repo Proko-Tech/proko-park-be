@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt-nodejs');
+const {DateTime} = require('luxon');
 
 const pick = require('../../../../utils/pick');
 const mailer = require('../../../modules/mailer');
@@ -21,6 +22,10 @@ router.get('/parking_lot/:id', async function(req, res) {
             const parking_lots = await reservationModel.getDistinctLotsByUserId(
                 id,
             );
+            await userModel.updateById(req.userInfo.id, {
+                last_logged_in_at:
+                    DateTime.local().toUTC().toSQL({includeOffset: false}),
+            });
             return res
                 .status(200)
                 .json({
@@ -346,10 +351,10 @@ router.delete('/', async function(req, res) {
         if (vehicleOwnershipExists) {
             await vehicleOwnershipModel.deleteByUserId(id);
         }
-    
+
         // Delete all primary vehicles specified by user + any ownership records belonging to any co-owners
         const deletablePrimaryVehicles = actions.filter((action) => action.action === 'DELETE').map((action) => action.vehicle.id) // List of ID
-        const deletablePrimaryVehiclesExists = 
+        const deletablePrimaryVehiclesExists =
             deletablePrimaryVehicles.length !== 0;
         if (deletablePrimaryVehiclesExists) {
             await vehicleModel.batchDeleteById(deletablePrimaryVehicles)
@@ -367,22 +372,22 @@ router.delete('/', async function(req, res) {
             const insertList = [];
             const createQueryLists = (action) => {
                 // Checks if person you are reassigning vehicle to is a co-owner
-                const coOwnerIndex = ownershipAndUsers.findIndex((row) => 
+                const coOwnerIndex = ownershipAndUsers.findIndex((row) =>
                     action.reassigned_user === row.email &
                     !row.is_primary_owner,
                 )
                 // Add information to update list if the target reassignment is a co-owner
                 if (coOwnerIndex !== -1) {
                     updateList.push({
-                        user_id: ownershipAndUsers[coOwnerIndex].user_id, 
+                        user_id: ownershipAndUsers[coOwnerIndex].user_id,
                         vehicle_id: ownershipAndUsers[coOwnerIndex].vehicle_id,
                     });
                     return;
                 } else {
                     // Otherwise, store new row information of non-cowowners (don't exist in ownershipAndUsers)
                     insertList.push({
-                        vehicle_id: action.vehicle.id, 
-                        is_primary_owner: 1, status: 'ACCEPTED', 
+                        vehicle_id: action.vehicle.id,
+                        is_primary_owner: 1, status: 'ACCEPTED',
                         user_id: action.reassigned_user,
                     });
                 }
@@ -404,11 +409,11 @@ router.delete('/', async function(req, res) {
                 insertList.forEach(convertEmailToUserId);
             }
             await vehicleOwnershipModel.batchInsertOwnership(
-                insertList, 
+                insertList,
             )
             const newOwnership = {is_primary_owner: 1, status: 'ACCEPTED'};
             updateList.forEach(
-                async (update) => 
+                async (update) =>
                     await vehicleOwnershipModel.updateByUserIdAndVehicleId(
                         update,
                         newOwnership,
