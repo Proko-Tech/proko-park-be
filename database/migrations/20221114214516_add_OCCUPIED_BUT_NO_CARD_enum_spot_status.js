@@ -5,7 +5,7 @@ const spot_status_enum = [
     'OCCUPIED',
     'OFF_LINE',
     'VIOLATION',
-    'OCCUPIED_BUT_NO_CARD',
+    'OCCUPIED_WITHOUT_CARD',
 ];
 const spot_status_enum_old = [
     'UNOCCUPIED',
@@ -14,45 +14,32 @@ const spot_status_enum_old = [
     'OFF_LINE',
     'VIOLATION',
 ];
-const tableName = 'spots';
-const columnName = 'spot_status';
 
-exports.up = function(knex) {
-    let existRows;
-    return knex.select()
-        .from(tableName)
-        .then((rows) => {
-            existRows = rows
-            return knex.schema.table(tableName, (table) =>
-                table.dropColumn(columnName))
-        })
-        .then(() => knex.schema.table(tableName, (table) =>
-            table.enu(columnName, spot_status_enum).notNullable()))
-        .then(() => {
-            return Promise.all(existRows.map((row) => {
-                return knex(tableName)
-                    .update({spot_status: row.spot_status})
-                    .where('id', row.id)
-            }))
-        })
+exports.up = async function(knex) {
+    const current_rows = await knex('spots').select('*');
+    await knex.schema.table('spots', (tbl) => tbl.dropColumn('spot_status'));
+    await knex.schema.table('spots', (tbl) => tbl.enum('spot_status', spot_status_enum, {
+        useNative: true,
+        enumName: 'spot_status_enum',
+    }));
+    return await Promise.all(current_rows.map((row) => {
+        return knex('spots')
+            .update({spot_status: row.spot_status})
+            .where('id', row.id)
+    }));
 }
 
-exports.down = function(knex) {
-    let existRows;
-    return knex.select()
-        .from(tableName)
-        .then((rows) => {
-            existRows = rows
-            return knex.schema.table(tableName, (table) =>
-                table.dropColumn(columnName))
-        })
-        .then(() => knex.schema.table(tableName, (table) =>
-            table.enu(columnName, spot_status_enum_old).notNullable()))
-        .then(() => {
-            return Promise.all(existRows.map((row) => {
-                return knex(tableName)
-                    .update({spot_status: row.spot_status === 'OCCUPIED_BUT_NO_CARD' ? 'OCCUPIED' : row.spot_status})
-                    .where('id', row.id)
-            }))
-        })
+exports.down = async function(knex) {
+    const current_rows = await knex('spots').select('*');
+    await knex.schema.table('spots', (tbl) => tbl.dropColumn('spot_status'));
+    await knex.schema.table('spots', (tbl) => tbl.enum('spot_status', spot_status_enum_old, {
+        useNative: true,
+        enumName: 'spot_status_enum',
+    }));
+    return await Promise.all(current_rows.map((row) => {
+        return knex('spots')
+            .update({spot_status: row.spot_status ===
+                'OCCUPIED_WITHOUT_CARD' ? 'OCCUPIED' : row.spot_status})
+            .where('id', row.id)
+    }));
 }
