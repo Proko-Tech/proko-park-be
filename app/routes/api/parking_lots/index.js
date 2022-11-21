@@ -43,6 +43,27 @@ router.get('/search/:payload', async function(req, res) {
     }
 });
 
+router.get('/spot/:spot_public_key', async function(req, res, next) {
+    const {spot_public_key} = req.params;
+    try {
+        const parking_lot_info = await lotsModel
+            .getBySpotPublicKeyJoinSpots(spot_public_key);
+        if (parking_lot_info.length === 0) {
+            return res.status(404).json({status: 'failed',
+                parking_lot_info: 'Unable to find parking lot information'});
+        }
+        return res.status(200).json({status: 'success', parking_lot_info: parking_lot_info[0]});
+    } catch (err) {
+        console.log(err);
+        return res
+            .status(500)
+            .json({
+                err,
+                data: 'Unable to fetch reservation information.',
+            });
+    }
+});
+
 router.get('/:lot_id', async function(req, res) {
     const {lot_id} = req.params;
     try {

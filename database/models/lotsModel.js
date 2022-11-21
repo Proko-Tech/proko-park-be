@@ -204,6 +204,19 @@ async function getByAlikeNameOrAddress(payload) {
     return result;
 }
 
+/**
+ * Get spots join lot by public key.
+ * @param public_key
+ * @returns {Promise<awaited Knex.QueryBuilder<TRecord, ArrayIfAlready<TResult, DeferredKeySelection.Augment<UnwrapArrayMember<TResult>, Knex.ResolveTableType<TRecord>, IncompatibleToAlt<ArrayMember<[string, string, string]>, string, never>, Knex.IntersectAliases<[string, string, string]>>>>>}
+ */
+async function getBySpotPublicKeyJoinSpots(public_key) {
+    const result = await db('spots')
+        .where({public_key})
+        .join('lots', 'lots.id', 'spots.lot_id')
+        .select('*', 'spots.id as spot_id', 'lots.id as lot_id');
+    return result;
+}
+
 module.exports = {
     getByIdAndHash,
     getByIdJoinSpots,
@@ -216,4 +229,5 @@ module.exports = {
     getById,
     getClosestByLatLong,
     getByAlikeNameOrAddress,
+    getBySpotPublicKeyJoinSpots,
 };
