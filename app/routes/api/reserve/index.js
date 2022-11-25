@@ -213,4 +213,58 @@ router.put('/cancel', async function(req, res) {
     }
 });
 
+router.put('/add_payment', async function(req, res) {
+    const {reservation_id, user_id, card_id} = req.body;
+    try {
+        const users = await usersModel.getById(user_id);
+        const reservations = await reservationModel.getById(reservation_id);
+        if (users.length === 0 || reservations.length === 0) {
+            return res.status(404).json({msg: 'Reservation or user not found'});
+        }
+
+        const result = await reservationModel.updateByIdAndHandleSpotStatus(
+            reservation_id, {user_id, card_id}, {spot_status: 'OCCUPIED'},
+        );
+
+        if (result.reservation_status !== 'success')
+            return res
+                .status(500)
+                .json({
+                    status: 'failed',
+                    data: 'Cannot cancel due to internal server error',
+                });
+        return res.status(200).json({status: 'success'});
+    } catch (err) {
+        console.log(err);
+        return res
+            .status(500)
+            .json({
+                err,
+                data: 'Unable to cancel reservation, internal server error',
+            });
+    }
+});
+
+router.get('/:spot_public_key', async function(req, res) {
+    const {spot_public_key} = req.params;
+    try {
+        const reservation_info = await reservationModel
+            .getBySpotPublicKeyJoinSpotsAndLots(spot_public_key);
+        if (reservation_info.length === 0) {
+            return res.status(404).json({status: 'failed',
+                reservation_info: []});
+        }
+        return res.status(200).json({status: 'success', reservation_info: reservation_info[0]});
+    } catch (err) {
+        console.log(err);
+        return res
+            .status(500)
+            .json({
+                err,
+                data: 'Unable to get reservation, internal server error',
+            });
+    }
+});
+
+
 module.exports = router;

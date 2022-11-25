@@ -438,6 +438,54 @@ async function insertAndHandleFCFSNonElectricArrive(lot_id, user_id) {
     return result;
 }
 
+/**
+ * Get reservation by spot's public key join spots and lots.
+ * @param public_key
+ * @returns {Promise<awaited Knex.QueryBuilder<TRecord, ArrayIfAlready<TResult, DeferredKeySelection.Augment<UnwrapArrayMember<TResult>, Knex.ResolveTableType<TRecord>, IncompatibleToAlt<ArrayMember<[string, string, string, string]>, string, never>, Knex.IntersectAliases<[string, string, string, string]>>>>>}
+ */
+async function getBySpotPublicKeyJoinSpotsAndLots(public_key) {
+    const result = await db('spots')
+        .where({public_key})
+        .join('lots', 'lots.id', 'spots.lot_id')
+        .join('reservations', 'spots.secret', 'reservations.spot_hash')
+        .select('*', 'spots.id as spot_id', 'lots.id as lot_id', 'reservations.id as reservation_id')
+        .orderBy('reservations.created_at', 'DESC')
+        .limit(1);
+    return result;
+}
+
+/**
+ * Update reservation by id and update spot status.
+ * @param id
+ * @param payload
+ * @returns {Promise<{reservation_status: string}>}
+ */
+async function updateByIdAndHandleSpotStatus(id, payload, spot_payload) {
+    const result = {reservation_status: 'failed'};
+    await db.transaction(async (transaction) => {
+        try {
+            const reservation = await db('reservations')
+                .select('*')
+                .where({id});
+            await db('reservations')
+                .update(payload)
+                .where({id})
+                .transacting(transaction);
+            await db('spots')
+                .update(spot_payload)
+                .where({secret: reservation[0].spot_hash})
+                .transacting(transaction);
+            result.reservation_status = 'success';
+            await transaction.commit();
+        } catch (err) {
+            console.log(err);
+            result.reservation_status = 'failed';
+            await transaction.rollback();
+        }
+    });
+    return result;
+}
+
 module.exports = {
     getById,
     getWithLotByUserId,
@@ -459,4 +507,6 @@ module.exports = {
     updateById,
     insertAndHandleNonElectricReserve,
     insertAndHandleFCFSNonElectricArrive,
+    getBySpotPublicKeyJoinSpotsAndLots,
+    updateByIdAndHandleSpotStatus,
 };
