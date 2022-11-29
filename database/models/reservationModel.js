@@ -151,40 +151,18 @@ async function getByUserIdAndLotId(user_id, lot_id) {
 }
 
 /**
- * get reserved tasks by user Id
+ * Get reserved or arrived or parked tasks by user id.
  * @param user_id
- * @returns {Promise<void>}
+ * @returns {Promise<awaited Knex.QueryBuilder<TRecord, ArrayIfAlready<TResult, DeferredKeySelection<TRecord, string>>>>}
  */
-async function getReservedByUserId(user_id) {
+async function getReservedOrArrivedOrParkedByUserId(user_id) {
     const rows = await db('reservations')
         .where({user_id})
-        .andWhere({status: 'RESERVED'})
-        .select('*');
-    return rows;
-}
-
-/**
- * get arrived tasks by user Id
- * @param user_id
- * @returns {Promise<void>}
- */
-async function getArrivedByUserId(user_id) {
-    const rows = await db('reservations')
-        .where({user_id})
-        .andWhere({status: 'ARRIVED'})
-        .select('*');
-    return rows;
-}
-
-/**
- * get parked tasks by user Id
- * @param user_id
- * @returns {Promise<void>}
- */
-async function getParkedByUserId(user_id) {
-    const rows = await db('reservations')
-        .where({user_id})
-        .andWhere({status: 'PARKED'})
+        .andWhere(function() {
+            this.where('status', 'RESERVED')
+                .orWhere('status', 'ARRIVED')
+                .orWhere('status', 'PARKED')
+        })
         .select('*');
     return rows;
 }
@@ -494,10 +472,6 @@ module.exports = {
     getDistinctLotsByUserId,
     getByUserIdAndLotId,
     getReservedBySpotHashAndLotId,
-    getWithVehicleAndLotByUserId,
-    getReservedByUserId,
-    getArrivedByUserId,
-    getParkedByUserId,
     getArrivedByUserIdAndLotId,
     getParkedByUserIdAndLotId,
     getParkedBySpotHashAndLotId,
@@ -509,4 +483,5 @@ module.exports = {
     insertAndHandleFCFSNonElectricArrive,
     getBySpotPublicKeyJoinSpotsAndLots,
     updateByIdAndHandleSpotStatus,
+    getReservedOrArrivedOrParkedByUserId,
 };
