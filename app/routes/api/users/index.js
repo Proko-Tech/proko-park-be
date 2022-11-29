@@ -235,85 +235,38 @@ router.get('/:id', async function(req, res) {
         }
         const user = await userModel.getAllById(id);
         user.user.vehicles = await vehicleModel.getByUserId(id);
-        const currentReservation =
-                await reservationModel.getReservedByUserId(id);
-        const currentArrivedTasks =
-                await reservationModel.getArrivedByUserId(id);
-        const currentParkedTasks = await reservationModel.getParkedByUserId(
-            id,
-        );
-        const isUserCurrentlyHasTask =
-                currentReservation.length > 0 ||
-                currentArrivedTasks.length > 0 ||
-                currentParkedTasks.length > 0;
+        const currentTask =
+            await reservationModel.getReservedOrArrivedOrParkedByUserId(id);
 
-        // TODO: add check current parked, and arrived
+        const isUserCurrentlyHasTask = currentTask.length > 0;
+
         let reservation_info = {};
         if (isUserCurrentlyHasTask) {
-            if (currentReservation.length > 0) {
-                const vehicles = await vehicleModel.getById(
-                    currentReservation[0].vehicle_id,
-                );
-                const lots = await lotModel.getById(
-                    currentReservation[0].lot_id,
-                );
-                const spots = await spotsModel.getBySecret(
-                    currentReservation[0].spot_hash,
-                );
-                reservation_info = {
-                    vehicle: vehicles[0],
-                    parking_lot: lots[0],
-                    status: 'RESERVED',
-                    reserved_at: currentReservation[0].reserved_at,
-                    arrived_at: currentReservation[0].arrived_at,
-                    parked_at: currentReservation[0].parked_at,
-                    reservation_id: currentReservation[0].id,
-                    spot: spots[0],
-                };
-            }
-            if (currentArrivedTasks.length > 0) {
-                const vehicles = await vehicleModel.getById(
-                    currentArrivedTasks[0].vehicle_id,
-                );
-                const lots = await lotModel.getById(
-                    currentArrivedTasks[0].lot_id,
-                );
-                const spots = await spotsModel.getBySecret(
-                    currentArrivedTasks[0].spot_hash,
-                );
-                reservation_info = {
-                    vehicle: vehicles[0],
-                    parking_lot: lots[0],
-                    status: 'ARRIVED',
-                    reserved_at: currentArrivedTasks[0].reserved_at,
-                    arrived_at: currentArrivedTasks[0].arrived_at,
-                    parked_at: currentArrivedTasks[0].parked_at,
-                    reservation_id: currentArrivedTasks[0].id,
-                    spot: spots[0],
-                };
-            }
-            if (currentParkedTasks.length > 0) {
-                const vehicles = await vehicleModel.getById(
-                    currentParkedTasks[0].vehicle_id,
-                );
-                const lots = await lotModel.getById(
-                    currentParkedTasks[0].lot_id,
-                );
-                const spots = await spotsModel.getBySecret(
-                    currentParkedTasks[0].spot_hash,
-                );
-                reservation_info = {
-                    vehicle: vehicles[0],
-                    parking_lot: lots[0],
-                    status: 'PARKED',
-                    reserved_at: currentParkedTasks[0].reserved_at,
-                    arrived_at: currentParkedTasks[0].arrived_at,
-                    parked_at: currentParkedTasks[0].parked_at,
-                    reservation_id: currentParkedTasks[0].id,
-                    spot: spots[0],
-                };
-            }
+            const vehicles = await vehicleModel.getById(
+                currentTask[0].vehicle_id,
+            );
+            const lots = await lotModel.getById(
+                currentTask[0].lot_id,
+            );
+            const spots = await spotsModel.getBySecret(
+                currentTask[0].spot_hash,
+            );
+            const card = await stripeCustomer
+                .getCardByCustomerId(user.user.stripe_customer_id,
+                    currentTask[0].card_id);
+            reservation_info = {
+                vehicle: vehicles[0],
+                parking_lot: lots[0],
+                status: currentTask[0].status,
+                reserved_at: currentTask[0].reserved_at,
+                arrived_at: currentTask[0].arrived_at,
+                parked_at: currentTask[0].parked_at,
+                reservation_id: currentTask[0].id,
+                spot: spots[0],
+                card,
+            };
         }
+
         const card_information = await stripeCustomer.getCardsByCustomerId(
             user.user.stripe_customer_id,
         );
