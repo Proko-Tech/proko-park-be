@@ -62,6 +62,12 @@ router.put('/spot', async function(req, res) {
             spot_data.spot_status === 'UNOCCUPIED' &&
             previous_spot[0].spot_status === 'OCCUPIED' &&
             previous_parked_reservation[0].status === 'PARKED';
+        const is_parked_without_card_to_exit =
+            previous_spot.length > 0 &&
+            previous_parked_reservation.length > 0 &&
+            spot_data.spot_status === 'UNOCCUPIED' &&
+            previous_spot[0].spot_status === 'OCCUPIED_WITHOUT_CARD' &&
+            previous_parked_reservation[0].status === 'PARKED';
         const is_violation_to_exit =
             previous_spot.length > 0 &&
             spot_data.spot_status === 'UNOCCUPIED' &&
@@ -75,9 +81,16 @@ router.put('/spot', async function(req, res) {
             !is_arrived_to_parked &&
             !is_reserved_to_parked &&
             !is_parked_to_exit;
+        const is_unoccupied_to_parked_without_card = previous_spot.length > 0 &&
+            previous_spot[0].spot_status === 'UNOCCUPIED' &&
+            spot_data.spot_status === 'OCCUPIED_WITHOUT_CARD' &&
+            !is_arrived_to_parked &&
+            !is_reserved_to_parked &&
+            !is_parked_to_exit;
 
         const date = DateTime.local().toUTC();
-        if (is_unoccupied_to_parked) {
+        if (is_unoccupied_to_parked || is_unoccupied_to_parked_without_card ||
+            is_violation || is_violation_to_exit) {
             // reservation updated in cloud vision server
             reservation_status = 'success';
             spot_update_status = await spotsModel.updateSpotStatus(spot_data);
@@ -104,7 +117,7 @@ router.put('/spot', async function(req, res) {
             );
             reservation_status = status.reservation_status;
             spot_update_status = await spotsModel.updateSpotStatus(spot_data);
-        } else if (is_parked_to_exit) {
+        } else if (is_parked_to_exit || is_parked_without_card_to_exit) {
             const reservation_info = {
                 exited_at: date.toSQL({includeOffset: false}),
                 status: 'FULFILLED',
@@ -214,13 +227,6 @@ router.put('/spot', async function(req, res) {
                     reservation_status = update_status.reservation_status;
                 }
             }
-        } else if (is_violation) {
-            // TODO: dynamic reallocation
-            reservation_status = 'success';
-            spot_update_status = await spotsModel.updateSpotStatus(spot_data);
-        } else if (is_violation_to_exit) {
-            reservation_status = 'success';
-            spot_update_status = await spotsModel.updateSpotStatus(spot_data);
         }
 
         const is_update_success =
