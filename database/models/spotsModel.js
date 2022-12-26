@@ -169,6 +169,18 @@ async function batchUpdate(spots) {
     }
 }
 
+/**
+ * Get spot by public key.
+ * @param public_key
+ * @returns {Promise<awaited Knex.QueryBuilder<TRecord, ArrayIfAlready<TResult, DeferredKeySelection<TRecord, string>>>>}
+ */
+async function getByPublicKey(public_key) {
+    const result = await db('spots')
+        .where({public_key})
+        .select('*');
+    return result;
+}
+
 module.exports = {
     updateSpotStatus,
     getSpotsByLotId,
@@ -181,4 +193,5 @@ module.exports = {
     getUnoccupiedReservableByLotId,
     getUnoccupiedNonReservableByLotId,
     getUnoccupiedNotElectricByLotId,
+    getByPublicKey,
 };
