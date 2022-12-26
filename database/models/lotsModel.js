@@ -217,6 +217,28 @@ async function getBySpotPublicKeyJoinSpots(public_key) {
     return result;
 }
 
+/**
+ * Get reservation by spot's public key join spots and lots.
+ * @param spotPublicKey
+ */
+async function getBySpotPublicKeyJoinLots(public_key) {
+    const result = await db('spots')
+        .where({public_key})
+        .join('lots', 'lots.id', 'spots.lot_id')
+        .select('lots.*',
+            'spots.lot_id',
+            'spots.id as spot_id',
+            'spots.spot_name',
+            'spots.is_charging_station',
+            'spots.spot_status',
+            'spots.is_reservable',
+            'spots.floor_plan_image_url',
+            'spots.public_key',
+            'lots.id as lot_id')
+        .limit(1);
+    return result;
+}
+
 module.exports = {
     getByIdAndHash,
     getByIdJoinSpots,
@@ -230,4 +252,5 @@ module.exports = {
     getClosestByLatLong,
     getByAlikeNameOrAddress,
     getBySpotPublicKeyJoinSpots,
+    getBySpotPublicKeyJoinLots,
 };

@@ -421,9 +421,15 @@ async function insertAndHandleFCFSNonElectricArrive(lot_id, user_id) {
  * @param public_key
  * @returns {Promise<awaited Knex.QueryBuilder<TRecord, ArrayIfAlready<TResult, DeferredKeySelection.Augment<UnwrapArrayMember<TResult>, Knex.ResolveTableType<TRecord>, IncompatibleToAlt<ArrayMember<[string, string, string, string]>, string, never>, Knex.IntersectAliases<[string, string, string, string]>>>>>}
  */
-async function getBySpotPublicKeyJoinSpotsAndLots(public_key) {
+async function
+getReservedArrivedOrParkedBySpotPublicKeyJoinSpotsAndLots(public_key) {
     const result = await db('spots')
         .where({public_key})
+        .andWhere(function() {
+            this.where('reservations.status', 'RESERVED')
+                .orWhere('reservations.status', 'ARRIVED')
+                .orWhere('reservations.status', 'PARKED')
+        })
         .join('lots', 'lots.id', 'spots.lot_id')
         .join('reservations', 'spots.secret', 'reservations.spot_hash')
         .select('*', 'spots.id as spot_id', 'lots.id as lot_id', 'reservations.id as reservation_id')
@@ -464,6 +470,35 @@ async function updateByIdAndHandleSpotStatus(id, payload, spot_payload) {
     return result;
 }
 
+/**
+ * Insert reservation and update spot by spot id using transaction.
+ * @param payload
+ * @param spot_id
+ * @param spot_payload
+ * @returns {Promise<{reservation_status: string}>}
+ */
+async function insertAndUpdateSpotBySpotId(payload, spot_id, spot_payload) {
+    const result = {reservation_status: 'failed'};
+    await db.transaction(async (transaction) => {
+        try {
+            await db('reservations')
+                .insert(payload)
+                .transacting(transaction);
+            await db('spots')
+                .update(spot_payload)
+                .where({id: spot_id})
+                .transacting(transaction);
+            result.reservation_status = 'success';
+            await transaction.commit();
+        } catch (err) {
+            console.log(err);
+            result.reservation_status = 'failed';
+            await transaction.rollback();
+        }
+    });
+    return result;
+}
+
 module.exports = {
     getById,
     getWithLotByUserId,
@@ -481,7 +516,8 @@ module.exports = {
     updateById,
     insertAndHandleNonElectricReserve,
     insertAndHandleFCFSNonElectricArrive,
-    getBySpotPublicKeyJoinSpotsAndLots,
+    getReservedArrivedOrParkedBySpotPublicKeyJoinSpotsAndLots,
     updateByIdAndHandleSpotStatus,
     getReservedOrArrivedOrParkedByUserId,
+    insertAndUpdateSpotBySpotId,
 };

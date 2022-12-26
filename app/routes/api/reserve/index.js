@@ -214,18 +214,65 @@ router.put('/cancel', async function(req, res) {
 });
 
 router.put('/add_payment', async function(req, res) {
-    const {reservation_id, user_id, card_id} = req.body;
+    const {reservation_id, card_id, spot_public_key} = req.body;
+    const user_id = req.userInfo.id;
     try {
         const users = await usersModel.getById(user_id);
-        const reservations = await reservationModel.getById(reservation_id);
-        if (users.length === 0 || reservations.length === 0) {
-            return res.status(404).json({msg: 'Reservation or user not found'});
+        const spots = await spotsModel.getByPublicKey(spot_public_key);
+
+        if (users.length === 0 || spots.length === 0) {
+            return res.status(404).json({msg: 'Spot or user not found.'});
         }
 
-        const result = await reservationModel.updateByIdAndHandleSpotStatus(
-            reservation_id, {user_id, card_id}, {spot_status: 'OCCUPIED'},
-        );
+        if (reservation_id !== undefined) {
+            const reservations = await reservationModel
+                .getById(reservation_id);
+            if (reservations.length === 0) {
+                return res.status(404).json({msg: 'Reservation not found.'});
+            }
 
+            if (reservations[0].status === 'FULFILLED' ||
+                reservations[0].status === 'CANCELED' ||
+                reservations[0].user_id !== user_id ||
+                reservations[0].spot_hash !== spots[0].secret) {
+                return res.status(401).json({msg: 'User cannot change this record.'});
+            }
+
+            const result = await reservationModel.updateByIdAndHandleSpotStatus(
+                reservation_id, {user_id, card_id}, {spot_status: 'OCCUPIED'},
+            );
+
+            if (result.reservation_status !== 'success')
+                return res
+                    .status(500)
+                    .json({
+                        status: 'failed',
+                        data: 'Cannot cancel due to internal server error',
+                    });
+            return res.status(200).json({status: 'success'});
+        }
+
+        if (spots[0].spot_status !== 'UNOCCUPIED') {
+            return res.status(401).json({msg: 'User cannot change this record.'});
+        }
+
+        const current_time = DateTime.local()
+            .toUTC()
+            .toSQL({includeOffset: false});
+        const new_reservation = {
+            user_id,
+            vehicle_id: -1,
+            license_plate: 'NOT_YET_READ',
+            spot_hash: spots[0].secret,
+            lot_id: spots[0].lot_id,
+            card_id,
+            reserved_at: current_time,
+            arrived_at: current_time,
+            status: 'ARRIVED',
+        }
+        const result = await reservationModel
+            .insertAndUpdateSpotBySpotId(
+                new_reservation, spots[0].id, {manual_capture: true});
         if (result.reservation_status !== 'success')
             return res
                 .status(500)
@@ -247,9 +294,22 @@ router.put('/add_payment', async function(req, res) {
 
 router.get('/:spot_public_key', async function(req, res) {
     const {spot_public_key} = req.params;
+    const {id} = req.userInfo;
     try {
-        const reservation_info = await reservationModel
-            .getBySpotPublicKeyJoinSpotsAndLots(spot_public_key);
+        let reservation_info = await reservationModel
+            .getReservedArrivedOrParkedBySpotPublicKeyJoinSpotsAndLots(
+                spot_public_key);
+        if (reservation_info.length !== 0 &&
+            reservation_info[0].user_id !== id) {
+            return res.status(401)
+                .json({status: 'failed', reservation_info: []});
+        }
+        if (reservation_info.length !== 0 && reservation_info[0].card_id) {
+            return res.status(200)
+                .json({status: 'success', reservation_info: reservation_info[0]});
+        }
+        reservation_info = await lotsModel
+            .getBySpotPublicKeyJoinLots(spot_public_key);
         if (reservation_info.length === 0) {
             return res.status(404).json({status: 'failed',
                 reservation_info: []});
