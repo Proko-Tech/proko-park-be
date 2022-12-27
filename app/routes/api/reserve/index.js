@@ -272,7 +272,8 @@ router.put('/add_payment', async function(req, res) {
         }
         const result = await reservationModel
             .insertAndUpdateSpotBySpotId(
-                new_reservation, spots[0].id, {manual_capture: true});
+                new_reservation, spots[0].id,
+                {manual_capture: true, spot_status: 'RESERVED'});
         if (result.reservation_status !== 'success')
             return res
                 .status(500)
