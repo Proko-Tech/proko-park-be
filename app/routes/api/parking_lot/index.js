@@ -10,12 +10,15 @@ const usersModel = require('../../../../database/models/usersModel');
 const notificationRequestsModel = require('../../../../database/models/notificationRequestsModel');
 const defectsModel = require('../../../../database/models/defectsModel');
 const lotOwnershipsModel = require('../../../../database/models/lotOwnershipsModel');
+const violationsModel = require('../../../../database/models/violationsModel');
+const guestsModel = require('../../../../database/models/guestsModel');
 
 const mailer = require('../../../modules/mailer');
 
 const stripePayment = require('../../../../services/stripe/payment');
-const stripeCustomer = require('../../../../services/stripe/customers');
 const slack = require('../../../../services/slack');
+const pick = require('../../../../utils/pick');
+
 const crypto = require('crypto');
 
 router.put('/spot', async function(req, res) {
@@ -118,8 +121,103 @@ router.put('/spot', async function(req, res) {
             reservation_status = status.reservation_status;
             spot_update_status = await spotsModel.updateSpotStatus(spot_data);
         } else if (is_parked_to_exit || is_parked_without_card_to_exit) {
+            const diff = Math.abs(
+                date.valueOf() -
+                previous_parked_reservation[0].parked_at.valueOf(),
+            );
+            const hour_diff = Math.ceil(diff / 1000 / 60 / 60);
+
+            if (previous_spot[0].is_collecting_payment &&
+                previous_parked_reservation[0].card_id === null) {
+                const payload = {
+                    reservation_id: previous_parked_reservation[0].id,
+                    type: 'NOT_RIGHT_VEHICLE',
+                    is_resolved: false,
+                    violation_image_url: previous_parked_reservation[0]
+                        .image_url,
+                    predicted_license_plate: previous_parked_reservation[0]
+                        .license_plate,
+                    created_at: date.toSQL({includeOffset: false}),
+                    ...pick(previous_parked_reservation[0],
+                        ['user_id', 'lot_id', 'exit_image_url']),
+                }
+                await violationsModel.insert(payload);
+                await spotsModel.updateSpotStatus(spot_data);
+                const reservation_info = {
+                    exited_at: date.toSQL({includeOffset: false}),
+                    elapsed_time: hour_diff,
+                    status: 'FULFILLED',
+                };
+                await reservationsModel.updateById(
+                    previous_parked_reservation[0].id,
+                    reservation_info,
+                );
+                return res
+                    .status(200)
+                    .json({status: 'violation', data: 'violation made.'});
+            }
+
+            const lot = await lotsModel.getByIdAndHash(
+                lot_data.id,
+                lot_data.hash,
+            );
+
+            const vehicle = await vehiclesModel.getById(
+                previous_parked_reservation[0].vehicle_id,
+            );
+
+            // calculate price, execute payment
+            const amount = hour_diff * lot[0].price_per_hour * 100;
+            const description =
+                date +
+                'Parking session at ' +
+                lot[0].name +
+                ' ' +
+                lot[0].hash;
+
+            if (previous_spot[0].is_collecting_payment) {
+                const payer = previous_parked_reservation[0].user_id !== -1?
+                    await usersModel.getById(
+                        previous_parked_reservation[0].user_id,
+                    ) :
+                    await guestsModel.getById(
+                        previous_parked_reservation[0].guest_id);
+                const charge =
+                        await stripePayment.authorizeByCustomerAndSource(
+                            amount,
+                            description,
+                            payer[0].stripe_customer_id,
+                            previous_parked_reservation[0].card_id,
+                        );
+                const update_reservation_info = {
+                    is_paid: true,
+                    stripe_charge_id: charge.id,
+                    total_price: amount / 100.0,
+                };
+                await mailer.sendReceipt(
+                    lot[0],
+                    vehicle.length === 0? null: vehicle[0],
+                    charge.payment_method_details.card,
+                    payer[0].email,
+                    payer[0].first_name,
+                    amount,
+                    hour_diff,
+                    async function(err, res) {
+                        if (err) {
+                            console.log(err);
+                        }
+                    },
+                );
+                const update_status = await reservationsModel.updateById(
+                    previous_parked_reservation[0].id,
+                    update_reservation_info,
+                );
+                reservation_status = update_status.reservation_status;
+            }
+
             const reservation_info = {
                 exited_at: date.toSQL({includeOffset: false}),
+                elapsed_time: hour_diff,
                 status: 'FULFILLED',
             };
             const status = await reservationsModel.updateById(
@@ -128,105 +226,6 @@ router.put('/spot', async function(req, res) {
             );
             reservation_status = status.reservation_status;
             spot_update_status = await spotsModel.updateSpotStatus(spot_data);
-
-            // calculate elapsed time, calculate price, execute payment
-            if (
-                reservation_status === 'success' &&
-                previous_parked_reservation[0].user_id !== -1
-            ) {
-                const diff = Math.abs(
-                    date.valueOf() -
-                        previous_parked_reservation[0].parked_at.valueOf(),
-                );
-                const hour_diff = Math.ceil(diff / 1000 / 60 / 60);
-                const user = await usersModel.getById(
-                    previous_parked_reservation[0].user_id,
-                );
-                const lot = await lotsModel.getByIdAndHash(
-                    lot_data.id,
-                    lot_data.hash,
-                );
-                const amount = hour_diff * lot[0].price_per_hour * 100;
-                const description =
-                    date +
-                    'Parking session at ' +
-                    lot[0].name +
-                    ' ' +
-                    lot[0].hash;
-                if (previous_parked_reservation[0].vehicle_id !== -1) {
-                    const vehicle = await vehiclesModel.getById(
-                        previous_parked_reservation[0].vehicle_id,
-                    );
-                    const stripe_card =
-                        await stripeCustomer.getCardByCustomerId(
-                            user[0].stripe_customer_id,
-                            previous_parked_reservation[0].card_id,
-                        );
-                    const charge =
-                        await stripePayment.authorizeByCustomerAndSource(
-                            amount,
-                            description,
-                            user[0].stripe_customer_id,
-                            previous_parked_reservation[0].card_id,
-                        );
-                    const update_reservation_info = {
-                        is_paid: true,
-                        stripe_charge_id: charge.id,
-                        total_price: amount / 100.0,
-                        elapsed_time: hour_diff,
-                    };
-                    await mailer.sendReceipt(
-                        lot[0],
-                        vehicle[0],
-                        stripe_card,
-                        user[0].email,
-                        user[0].first_name,
-                        amount,
-                        hour_diff,
-                        async function(err, res) {
-                            if (err) {
-                                console.log(err);
-                            }
-                        },
-                    );
-                    const update_status = await reservationsModel.updateById(
-                        previous_parked_reservation[0].id,
-                        update_reservation_info,
-                    );
-                    reservation_status = update_status.reservation_status;
-                } else {
-                    const charge = await stripePayment.authorizeByCustomer(
-                        amount,
-                        description,
-                        user[0].stripe_customer_id,
-                    );
-                    const update_reservation_info = {
-                        is_paid: true,
-                        stripe_charge_id: charge.id,
-                        total_price: amount / 100.0,
-                        elapsed_time: hour_diff,
-                    };
-                    await mailer.sendReceipt(
-                        lot[0],
-                        null,
-                        charge.payment_method_details.card,
-                        user[0].email,
-                        user[0].first_name,
-                        amount,
-                        hour_diff,
-                        async function(err, res) {
-                            if (err) {
-                                console.log(err);
-                            }
-                        },
-                    );
-                    const update_status = await reservationsModel.updateById(
-                        previous_parked_reservation[0].id,
-                        update_reservation_info,
-                    );
-                    reservation_status = update_status.reservation_status;
-                }
-            }
         }
 
         const is_update_success =
@@ -235,7 +234,7 @@ router.put('/spot', async function(req, res) {
             reservation_status === 'success';
         if (!is_update_success) {
             return res
-                .status(404)
+                .status(500)
                 .json({status: 'failed', data: 'Parking lot not updated'});
         }
 
