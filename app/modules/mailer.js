@@ -233,10 +233,32 @@ const sendAvailabilityNotification = (
     )
 }
 
+const sendTextEmail = (payload) => {
+    const mailOptions = {
+        ...payload,
+    };
+    transporter.sendMail(mailOptions, function(error, info) {
+        if (error) {
+            console.log(error);
+            callback({
+                status: false,
+                message: 'EMAIL SEND FAIL',
+            });
+        } else {
+            // console.log('Email sent: ' + info.response);
+            callback({
+                status: true,
+                message: 'EMAIL SENT',
+            });
+        }
+    });
+}
+
 module.exports = {
     sendEmail,
     sendReservationConfirmation,
     sendReceipt,
     sendCoownVehicleInvitation,
     sendAvailabilityNotification,
+    sendTextEmail,
 };
