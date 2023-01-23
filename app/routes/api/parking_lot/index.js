@@ -16,7 +16,6 @@ const guestsModel = require('../../../../database/models/guestsModel');
 const mailer = require('../../../modules/mailer');
 
 const stripePayment = require('../../../../services/stripe/payment');
-const slack = require('../../../../services/slack');
 const pick = require('../../../../utils/pick');
 
 const crypto = require('crypto');
@@ -427,8 +426,13 @@ router.post('/:hash', async function(req, res) {
                 secret_hash: hash,
             });
 
-            await slack.sendDefectsNotification(
-                `A new defect has been created for lot: *${result.name}*`);
+            await mailer.sendTextEmail({
+                from: process.env.EMAILUSER,
+                to: process.env.CORE_ENG_EMAIL,
+                subject: `❌[${result.name}] - Full system down`,
+                text: 'A new defect has been created, check it out here: ' +
+                    process.env.INTERNAL_DEFECT_LINK + `/${hash}`,
+            });
         }
 
         const is_get_and_update_success =
