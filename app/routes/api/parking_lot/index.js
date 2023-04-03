@@ -62,14 +62,12 @@ router.put('/spot', async function(req, res) {
             previous_spot.length > 0 &&
             previous_parked_reservation.length > 0 &&
             spot_data.spot_status === 'UNOCCUPIED' &&
-            previous_spot[0].spot_status === 'OCCUPIED' &&
-            previous_parked_reservation[0].status === 'PARKED';
+            previous_spot[0].spot_status === 'OCCUPIED';
         const is_parked_without_card_to_exit =
             previous_spot.length > 0 &&
             previous_parked_reservation.length > 0 &&
             spot_data.spot_status === 'UNOCCUPIED' &&
-            previous_spot[0].spot_status === 'OCCUPIED_WITHOUT_CARD' &&
-            previous_parked_reservation[0].status === 'PARKED';
+            previous_spot[0].spot_status === 'OCCUPIED_WITHOUT_CARD';
         const is_violation_to_exit =
             previous_spot.length > 0 &&
             spot_data.spot_status === 'UNOCCUPIED' &&
