@@ -87,7 +87,7 @@ router.put('/spot', async function(req, res) {
             !is_arrived_to_parked &&
             !is_reserved_to_parked &&
             !is_parked_to_exit;
-
+        console.log(previous_spot[0].spot_status, spot_data.spot_status);
         const date = DateTime.local().toUTC();
         if (is_unoccupied_to_parked || is_unoccupied_to_parked_without_card ||
             is_violation || is_violation_to_exit) {
@@ -118,6 +118,7 @@ router.put('/spot', async function(req, res) {
             reservation_status = status.reservation_status;
             spot_update_status = await spotsModel.updateSpotStatus(spot_data);
         } else if (is_parked_to_exit || is_parked_without_card_to_exit) {
+            console.log("parked to exit");
             reservation_status = 'success';
             spot_update_status = await spotsModel.updateSpotStatus(spot_data);
         }
