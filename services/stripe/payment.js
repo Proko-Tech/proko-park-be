@@ -45,4 +45,36 @@ async function authorizeByCustomerAndSource(
     return charge;
 }
 
-module.exports = {authorizeByCustomer, authorizeByCustomerAndSource};
+/**
+ * Authorize payment intent by customer and payment method.
+ * @param amount
+ * @param description
+ * @param stripeCustomerId
+ * @param pm_id
+ * @returns {Promise<Stripe.Charge & {lastResponse: {headers: {[p: string]: string}, requestId: string, statusCode: number, apiVersion?: string, idempotencyKey?: string, stripeAccount?: string}}>}
+ */
+async function authorizePaymentIntentByCustomerAndPaymentMethod(
+    amount,
+    description,
+    stripeCustomerId,
+    pm_id,
+){
+    const paymentIntent = await stripe.paymentIntents.create({
+        // Return a charge object
+        amount: amount, // Unit: cents
+        currency: 'usd',
+        customer: stripeCustomerId,
+        payment_method_types: ['card'],
+        payment_method: pm_id,
+        description: description,
+        off_session: true,
+        confirm: true,
+    });
+    return paymentIntent;
+}
+
+module.exports = {
+    authorizeByCustomer,
+    authorizeByCustomerAndSource,
+    authorizePaymentIntentByCustomerAndPaymentMethod,
+};

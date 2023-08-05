@@ -14,6 +14,7 @@ const notificationRequestsModel = require('../../../../database/models/notificat
 const reservationModel = require('../../../../database/models/reservationModel');
 const spotsModel = require('../../../../database/models/spotsModel');
 const vehicleOwnershipModel = require('../../../../database/models/vehicleOwnershipModel')
+const stripe = require("stripe");
 
 router.get('/parking_lot/:id', async function(req, res) {
     const {id} = req.params;
@@ -197,6 +198,40 @@ router.post('/addCard', async function(req, res) {
     }
 });
 
+router.post('/addCardIntent', async function(req, res) {
+    const {id} = req.userInfo;
+    const {stripe_customer_id, payment_method_types = []} = req.body;
+    try {
+        const user_info = await userModel.getById(id);
+        if (user_info.length === 0) {
+            return res
+                .status(404)
+                .json({status: 'failed', message: 'User not found'});
+        }
+        if (user_info[0].stripe_customer_id !== stripe_customer_id) {
+            return res.status(401)
+                .json({status: 'failed', message: 'Stripe customer id not matched'});
+        }
+        const ephemeral_key =
+            await stripeCustomer.getEphemeralKeyByCustomerId(
+                stripe_customer_id);
+        const setup_intent =
+            await stripeCustomer.createSetupIntentByCustomerId(
+                stripe_customer_id, payment_method_types);
+        return res
+            .status(200)
+            .json({
+                status: 'success',
+                message: 'Add card intent setup successfully',
+                setup_intent, ephemeral_key,
+            });
+    } catch (err) {
+        return res
+            .status(500)
+            .json({err, message: 'Unable to resend code due to server error'});
+    }
+});
+
 router.delete('/deleteCard/:card_source', async function(req, res) {
     const {id} = req.userInfo;
     const {card_source} = req.params;
@@ -207,10 +242,15 @@ router.delete('/deleteCard/:card_source', async function(req, res) {
                 .status(404)
                 .json({status: 'failed', message: 'User not found'});
         }
-        const cardInfo = await stripeCustomer.removeCardByCustomerId(
-            card_source,
-            result[0].stripe_customer_id,
-        );
+
+        const cardInfo = card_source.startsWith('pm') ?
+            await stripeCustomer.removePaymentMethodByPaymentMethodId(
+                card_source,
+            ) :
+            await stripeCustomer.removeCardByCustomerId(
+                card_source,
+                result[0].stripe_customer_id,
+            );
         return res
             .status(200)
             .json({
@@ -219,6 +259,7 @@ router.delete('/deleteCard/:card_source', async function(req, res) {
                 card: cardInfo,
             });
     } catch (err) {
+        console.error(err);
         return res
             .status(500)
             .json({err, message: 'Unable to resend code due to server error'});
@@ -251,9 +292,14 @@ router.get('/:id', async function(req, res) {
             const spots = await spotsModel.getBySecret(
                 currentTask[0].spot_hash,
             );
-            const card = await stripeCustomer
-                .getCardByCustomerId(user.user.stripe_customer_id,
-                    currentTask[0].card_id);
+            const card = currentTask[0].card_id.startsWith('pm') ?
+                await stripeCustomer.getPaymentMethodsByCustomerIdAndPMId(
+                    user.user.stripe_customer_id,
+                    currentTask[0].card_id,
+                ) : await stripeCustomer
+                    .getCardByCustomerId(user.user.stripe_customer_id,
+                        currentTask[0].card_id);
+
             reservation_info = {
                 vehicle: vehicles[0],
                 parking_lot: lots[0],

@@ -52,10 +52,6 @@ router.post('/', async function(req, res) {
         const isUserOwnVehicle = vehicleOwnerRecords.length > 0;
 
         const isUserValid = user.length !== 0;
-        const cardInformation = await stripeCustomer.getCardByCustomerId(
-            user[0].stripe_customer_id,
-            card_id,
-        );
         const isValidReservation =
             !isUserCurrentlyHasTask &&
             !isLotFull &&
@@ -63,6 +59,12 @@ router.post('/', async function(req, res) {
             isUserValid;
 
         if (isValidReservation) {
+            const cardInformation = card_id.startsWith('pm') ?
+                await stripeCustomer.getPaymentMethodsByCustomerIdAndPMId(
+                    user[0].stripe_customer_id,
+                    card_id,
+                ) : await stripeCustomer
+                    .getCardByCustomerId(user[0].stripe_customer_id, card_id);
             const {reservation_status} =
                 await reservationModel.insertAndHandleNonElectricReserve(
                     lot_id,
@@ -167,12 +169,20 @@ router.put('/cancel', async function(req, res) {
             const userInfo = await usersModel.getById(id);
             const amount = 400;
             const description = 'Cancellation Fee 3 times';
-            const charge = await stripePayment.authorizeByCustomerAndSource(
-                amount,
-                description,
-                userInfo[0].stripe_customer_id,
-                reservation[0].card_id,
-            );
+            const charge = reservation[0].card_id.startsWith('pm') ?
+                await stripePayment
+                    .authorizePaymentIntentByCustomerAndPaymentMethod(
+                        amount,
+                        description,
+                        userInfo[0].stripe_customer_id,
+                        reservation[0].card_id,
+                    ) :
+                await stripePayment.authorizeByCustomerAndSource(
+                    amount,
+                    description,
+                    userInfo[0].stripe_customer_id,
+                    reservation[0].card_id,
+                );
             const result = await reservationModel.updateCancelById(
                 reservation_id,
                 {

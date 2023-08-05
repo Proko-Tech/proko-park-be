@@ -55,6 +55,16 @@ async function removeCardByCustomerId(cardId, stripeCustomerId) {
 }
 
 /**
+ * Remove a payment method by payment method id.
+ * @param pm_id
+ * @returns {Promise<Stripe.PaymentMethod & {lastResponse: {headers: {[p: string]: string}, requestId: string, statusCode: number, apiVersion?: string, idempotencyKey?: string, stripeAccount?: string}}>}
+ */
+async function removePaymentMethodByPaymentMethodId(pm_id) {
+    const paymentMethod = await stripe.paymentMethods.detach(pm_id);
+    return paymentMethod;
+}
+
+/**
  * update customer's default payment method
  * @param cardSource
  * @param stripeCustomerId
@@ -81,6 +91,46 @@ async function create(name, email) {
     return customer;
 }
 
+/**
+ * Get ephemeral key for a given customer.
+ * @param customer_id
+ * @returns {Promise<Stripe.EphemeralKey & {lastResponse: {headers: {[p: string]: string}, requestId: string, statusCode: number, apiVersion?: string, idempotencyKey?: string, stripeAccount?: string}}>}
+ */
+async function getEphemeralKeyByCustomerId(customer_id) {
+    const ephemeralKey = await stripe.ephemeralKeys.create(
+        {customer: customer_id},
+        {apiVersion: '2020-08-27'},
+    );
+    return ephemeralKey;
+}
+
+/**
+ * Create setup intent by customer id.
+ * @param customer_id
+ * @param payment_method_types
+ * @returns {Promise<Stripe.SetupIntent & {lastResponse: {headers: {[p: string]: string}, requestId: string, statusCode: number, apiVersion?: string, idempotencyKey?: string, stripeAccount?: string}}>}
+ */
+async function createSetupIntentByCustomerId(
+    customer_id, payment_method_types) {
+    const setupIntent = await stripe.setupIntents.create({
+        ...{customer: customer_id, payment_method_types},
+    });
+    return setupIntent;
+}
+
+/**
+ * Get payment method by customer id and payment method id.
+ * @param customer_id
+ * @param pm_id
+ * @returns {Promise<*>}
+ */
+async function getPaymentMethodsByCustomerIdAndPMId(customer_id, pm_id) {
+    const paymentMethod = await stripe.customers.retrievePaymentMethod(
+        customer_id, pm_id,
+    );
+    return paymentMethod;
+}
+
 module.exports = {
     create,
     getCardsByCustomerId,
@@ -88,4 +138,8 @@ module.exports = {
     addNewCardByCustomerId,
     removeCardByCustomerId,
     updateDefaultSource,
+    getEphemeralKeyByCustomerId,
+    createSetupIntentByCustomerId,
+    getPaymentMethodsByCustomerIdAndPMId,
+    removePaymentMethodByPaymentMethodId,
 };
