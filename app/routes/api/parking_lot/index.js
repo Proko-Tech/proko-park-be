@@ -16,6 +16,7 @@ const guestsModel = require('../../../../database/models/guestsModel');
 const mailer = require('../../../modules/mailer');
 
 const stripePayment = require('../../../../services/stripe/payment');
+const stripeCustomer = require('../../../../services/stripe/customers');
 const pick = require('../../../../utils/pick');
 
 const crypto = require('crypto');
@@ -38,11 +39,9 @@ router.put('/spot', async function(req, res) {
                 spot_data.secret,
                 lot_data.id,
             );
-        const previous_parked_reservation =
-            await reservationsModel.getParkedBySpotHashAndLotId(
-                spot_data.secret,
-                lot_data.id,
-            );
+        const latest_reservation =
+            await reservationsModel.getLatestBySpotHashAndLotId(
+                spot_data.secret, lot_data.id);
 
         let reservation_status = 'failed';
         let spot_update_status = 'failed';
@@ -115,6 +114,72 @@ router.put('/spot', async function(req, res) {
             );
             reservation_status = status.reservation_status;
             spot_update_status = await spotsModel.updateSpotStatus(spot_data);
+        } else if (
+            is_parked_to_exit &&
+            latest_reservation.length > 0 &&
+            latest_reservation[0].is_paid) {
+            // Did not go through cloud vision charge here instead.
+            const diff =
+                Math.abs(
+                    date.valueOf() - latest_reservation[0].parked_at.valueOf());
+            const hour_difference = Math.ceil(diff/1000/60/60);
+            const user_info =
+                await usersModel.getById(latest_reservation[0].user_id);
+            const lot = await lotsModel.getByIdAndHash(
+                lot_data.id, lot_data.hash);
+            const amount =
+                hour_difference * lot[0].price_per_hour * 100;
+            const description =
+                date + 'Parking session at ' + lot[0].name + ' ' + lot[0].hash;
+            const vehicle = latest_reservation[0].vehicle_id !== -1 ?
+                await vehiclesModel.getById(latest_reservation[0].vehicle_id) :
+                null;
+            const stripe_card = latest_reservation[0].card_id.startsWith('pm') ?
+                await stripeCustomer.getPaymentMethodsByCustomerIdAndPMId(
+                    user_info[0].stripe_customer_id,
+                    latest_reservation[0].card_id) :
+                await stripeCustomer.getCardByCustomerId(
+                    user_info[0].stripe_customer_id,
+                    latest_reservation[0].card_id);
+            const charge = latest_reservation[0].card_id.startsWith('pm') ?
+                await stripePayment
+                    .authorizePaymentIntentByCustomerAndPaymentMethod(
+                        amount,
+                        description,
+                        user_info[0].stripe_customer_id,
+                        latest_reservation[0].card_id,
+                    ) :
+                await stripePayment.authorizeByCustomerAndSource(
+                    amount,
+                    description,
+                    user_info[0].stripe_customer_id,
+                    latest_reservation[0].card_id,
+                );
+            const update_reservation_info = {
+                is_paid: true,
+                stripe_charge_id: charge.id,
+                total_price: amount / 100.00,
+                elapsed_time: hour_difference,
+                exited_at: date.toSQL({includeOffset: false}),
+                status: 'FULFILLED',
+            };
+            await mailer.sendReceipt(
+                lot[0],
+                vehicle[0],
+                stripe_card,
+                user_info[0].email,
+                user_info[0].first_name,
+                amount,
+                hour_difference,
+                async function(err, res) {
+                    if (err) {
+                        console.log(err);
+                    }
+                });
+            const update_status =
+                await reservationsModel.updateById(
+                    latest_reservation[0].id, update_reservation_info);
+            reservation_status = update_status.reservation_status;
         } else if (is_parked_to_exit || is_parked_without_card_to_exit) {
             reservation_status = 'success';
             spot_update_status = await spotsModel.updateSpotStatus(spot_data);

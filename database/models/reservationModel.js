@@ -499,6 +499,22 @@ async function insertAndUpdateSpotBySpotId(payload, spot_id, spot_payload) {
     return result;
 }
 
+/**
+ * Get latest reservation by spot hash and lot id
+ * @param secret
+ * @param lot_id
+ * @returns {Promise<void>}
+ */
+async function getLatestBySpotHashAndLotId(spot_hash, lot_id){
+    const rows = await db('reservations')
+        .where({spot_hash})
+        .andWhere({lot_id})
+        .select('*')
+        .orderBy('created_at', 'DESC')
+        .limit(1);
+    return rows;
+}
+
 module.exports = {
     getById,
     getWithLotByUserId,
@@ -520,4 +536,5 @@ module.exports = {
     updateByIdAndHandleSpotStatus,
     getReservedOrArrivedOrParkedByUserId,
     insertAndUpdateSpotBySpotId,
+    getLatestBySpotHashAndLotId,
 };
