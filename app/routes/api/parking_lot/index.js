@@ -10,14 +10,11 @@ const usersModel = require('../../../../database/models/usersModel');
 const notificationRequestsModel = require('../../../../database/models/notificationRequestsModel');
 const defectsModel = require('../../../../database/models/defectsModel');
 const lotOwnershipsModel = require('../../../../database/models/lotOwnershipsModel');
-const violationsModel = require('../../../../database/models/violationsModel');
-const guestsModel = require('../../../../database/models/guestsModel');
 
 const mailer = require('../../../modules/mailer');
 
 const stripePayment = require('../../../../services/stripe/payment');
 const stripeCustomer = require('../../../../services/stripe/customers');
-const pick = require('../../../../utils/pick');
 
 const crypto = require('crypto');
 
@@ -86,7 +83,31 @@ router.put('/spot', async function(req, res) {
             !is_parked_to_exit;
 
         const date = DateTime.local().toUTC();
-        if (is_unoccupied_to_parked || is_unoccupied_to_parked_without_card ||
+        if (is_unoccupied_to_parked || is_unoccupied_to_parked_without_card &&
+            (latest_reservation.length === 0 ||
+             latest_reservation[0].status === 'FULFILLED')) {
+            // In this case, cloud vision did not record a new reservation,
+            // meaning the sensor doesn't have a camera which skipped the cloud
+            // vision.
+            const new_reservation = {
+                user_id: -1,
+                lot_id: previous_spot[0].lot_id,
+                license_plate: 'NOT_YET_READ',
+                vehicle_id: -1,
+                spot_hash: previous_spot[0].spot_hash,
+                reserved_at: date.toSQL({includeOffset: false}),
+                arrived_at: date.toSQL({includeOffset: false}),
+                parked_at: date.toSQL({includeOffset: false}),
+                status: 'PARKED',
+            }
+            spot_data.spot_status = previous_spot[0].is_collecting_payment ?
+                'OCCUPIED_WITHOUT_CARD' : 'OCCUPIED';
+            reservation_status =
+                await reservationsModel.insertAndUpdateSpotBySpotId(
+                    new_reservation, previous_spot[0].id, spot_data,
+                );
+        } else if (
+            is_unoccupied_to_parked || is_unoccupied_to_parked_without_card ||
             is_violation || is_violation_to_exit) {
             // reservation updated in cloud vision server
             reservation_status = 'success';
@@ -118,7 +139,8 @@ router.put('/spot', async function(req, res) {
             is_parked_to_exit &&
             latest_reservation.length > 0 &&
             !latest_reservation[0].is_paid) {
-            // Did not go through cloud vision charge here instead.
+            // Did not go through cloud vision, or cloud vision did not
+            // successfully create a charge, so charge here instead.
             const diff =
                 Math.abs(
                     date.valueOf() - latest_reservation[0].parked_at.valueOf());
@@ -219,7 +241,10 @@ router.put('/spot', async function(req, res) {
 
         return res
             .status(200)
-            .json({status: 'success', data: 'Parking lot updated'});
+            .json({
+                status: 'success',
+                data: 'Parking lot updated',
+                spot_info: spot_data});
     } catch (err) {
         console.log(err);
         return res
