@@ -501,11 +501,11 @@ async function insertAndUpdateSpotBySpotId(payload, spot_id, spot_payload) {
 
 /**
  * Get latest reservation by spot hash and lot id
- * @param secret
+ * @param spot_hash
  * @param lot_id
  * @returns {Promise<void>}
  */
-async function getLatestBySpotHashAndLotId(spot_hash, lot_id){
+async function getLatestBySpotHashAndLotId(spot_hash, lot_id) {
     const rows = await db('reservations')
         .where({spot_hash})
         .andWhere({lot_id})
