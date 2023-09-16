@@ -117,7 +117,7 @@ router.put('/spot', async function(req, res) {
         } else if (
             is_parked_to_exit &&
             latest_reservation.length > 0 &&
-            latest_reservation[0].is_paid) {
+            !latest_reservation[0].is_paid) {
             // Did not go through cloud vision charge here instead.
             const diff =
                 Math.abs(
