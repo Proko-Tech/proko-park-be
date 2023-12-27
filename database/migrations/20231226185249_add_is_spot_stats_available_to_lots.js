@@ -1,6 +1,6 @@
 exports.up = function(knex) {
     return knex.schema.table('lots', (tbl) => {
-        tbl.boolean('is_spot_stats_available');
+        tbl.boolean('is_spot_stats_available').defaultTo(false);
     });
 };
 
