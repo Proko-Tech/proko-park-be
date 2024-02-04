@@ -112,6 +112,7 @@ async function getDistinctLotsByUserId(user_id) {
             'zip',
             'alive_status',
             'price_per_hour',
+            'is_spot_stats_available',
         ]);
     const result = await Promise.all(
         rows.map(async (row) => {
