@@ -158,7 +158,6 @@ async function batchUpdate(spots) {
                 'firmware_version',
                 'last_distance',
                 'cam_alive_status',
-                'empty_distance_threshold',
             ]);
             update_body.updated_at = updated_date;
             await db('spots').update(update_body).where({secret: spot.secret});
