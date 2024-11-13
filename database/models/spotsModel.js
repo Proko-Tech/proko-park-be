@@ -148,6 +148,17 @@ async function getBySecret(secret) {
 async function batchUpdate(spots) {
     try {
         await spots.map(async (spot) => {
+            if (spot.spot_type === 'SINGLE_SPACE_WITHOUT_CAM') {
+                const update_body = pick(spot, [
+                    'alive_status',
+                    'rssi_threshold',
+                    'last_rssi_reading',
+                    'spot_status',
+                    'updated_at',
+                ]);
+                await db('spots').update(update_body).where({secret: spot.secret});
+                return;
+            }
             const updated_date = DateTime.fromISO(
                 new Date(spot.updated_at).toISOString(),
             )
