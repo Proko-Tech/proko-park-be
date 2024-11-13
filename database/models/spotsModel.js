@@ -151,7 +151,6 @@ async function batchUpdate(spots) {
             if (spot.spot_type === 'SINGLE_SPACE_WITHOUT_CAM') {
                 const update_body = pick(spot, [
                     'alive_status',
-                    'rssi_threshold',
                     'last_rssi_reading',
                     'spot_status',
                     'updated_at',
