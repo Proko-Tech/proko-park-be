@@ -10,7 +10,7 @@ exports.up = function(knex) {
         })
             .notNullable()
             .index();
-        tbl.decimal('rssi_threshold');
+        tbl.decimal('min_island_number');
         tbl.decimal('last_rssi_reading');
     });
 };
@@ -18,7 +18,7 @@ exports.up = function(knex) {
 exports.down = function(knex) {
     return knex.schema.table('spots', (tbl) => {
         tbl.dropColumn('spot_type');
-        tbl.dropColumn('rssi_threshold');
+        tbl.dropColumn('min_island_number');
         tbl.dropColumn('last_rssi_reading');
     });
 };
