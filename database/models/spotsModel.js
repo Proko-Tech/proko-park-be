@@ -152,6 +152,7 @@ async function batchUpdate(spots) {
                 const update_body = pick(spot, [
                     'alive_status',
                     'last_rssi_reading',
+                    'number_of_connected_nodes',
                     'spot_status',
                     'updated_at',
                 ]);
