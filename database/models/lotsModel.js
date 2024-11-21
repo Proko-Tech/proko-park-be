@@ -239,6 +239,17 @@ async function getBySpotPublicKeyJoinLots(public_key) {
     return result;
 }
 
+/**
+ * Update lot by id.
+ * @param id 
+ * @param update_json 
+ */
+async function updateById(id, update_json) {
+    await db('lots')
+        .update(update_json)
+        .where({id});
+}
+
 module.exports = {
     getByIdAndHash,
     getByIdJoinSpots,
@@ -253,4 +264,5 @@ module.exports = {
     getByAlikeNameOrAddress,
     getBySpotPublicKeyJoinSpots,
     getBySpotPublicKeyJoinLots,
+    updateById,
 };
