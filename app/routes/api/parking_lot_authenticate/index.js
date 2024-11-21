@@ -14,6 +14,7 @@ router.post('/', async function(req, res) {
                 id,
                 hash,
             };
+            await lotsModel.updateById(id, {restart_server: false});
             const token = await lotToken.generateToken(lotInfo);
             res.clearCookie('lotToken');
             res.cookie('lotToken', token);
