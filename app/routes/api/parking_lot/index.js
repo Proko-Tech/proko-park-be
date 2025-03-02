@@ -21,9 +21,10 @@ router.get('/reservations_count', async function(req, res) {
             await lotsModel.getReservationsCountByLotId(req.lotInfo.id);
         const result = await lotsModel.getLotByHash(req.lotInfo.hash);
 
-        const hourly_reservations_count = [];
+        const hourly_reservations_count = new Array(24).fill(0);
         for (let i=0; i<reservations_count.length; i++) {
-            hourly_reservations_count.push(reservations_count[i].count);
+            hourly_reservations_count[reservations_count[i].hour] =
+                reservations_count[i].count;
         }
         return res.status(200).json({
             status: 'success',
