@@ -57,6 +57,16 @@ async function getLotAndSpotsByHash(hash) {
 }
 
 /**
+ * get lot json by hash
+ * @param hash
+ * @returns {Promise<void>}
+ */
+async function getLotByHash(hash) {
+    const result = await db('lots').where({hash}).select('*');
+    return result[0];
+}
+
+/**
  * get parking lot and its open spots with parameter
  * @param id
  * @returns {Promise<{available_spots: *}>}
@@ -250,6 +260,41 @@ async function updateById(id, update_json) {
         .where({id});
 }
 
+/**
+ * Get reservation count by lot id.
+ * @param lot_id 
+ * @returns 
+ */
+async function getReservationsCountByLotHash(lot_hash) {
+    const rows = await db.raw(
+        `
+        WITH RECURSIVE hours AS (
+          SELECT 0 AS hour
+          UNION ALL
+          SELECT hour + 1 FROM hours WHERE hour < 23
+        )
+        SELECT h.hour,
+              r_lot_id.lot_id,
+              l.name AS lot_name,
+              COALESCE(COUNT(r.created_at), 0) AS count
+        FROM (SELECT DISTINCT lot_id FROM reservations) r_lot_id
+        CROSS JOIN hours h
+        LEFT JOIN reservations r
+            ON h.hour = HOUR(r.created_at)
+            AND r_lot_id.lot_id = r.lot_id
+        JOIN lots l
+            ON l.id = r.lot_id
+        WHERE l.hash = ?
+        AND r.reserved_at >= DATE_SUB(NOW(), INTERVAL 90 DAY)
+        GROUP BY r_lot_id.lot_id, h.hour
+        ORDER BY r_lot_id.lot_id, h.hour;
+        `,
+        [lot_hash],
+    );
+
+    return rows;
+}
+
 module.exports = {
     getByIdAndHash,
     getByIdJoinSpots,
@@ -265,4 +310,6 @@ module.exports = {
     getBySpotPublicKeyJoinSpots,
     getBySpotPublicKeyJoinLots,
     updateById,
+    getLotByHash,
+    getReservationsCountByLotHash,
 };

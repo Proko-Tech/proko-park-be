@@ -5,20 +5,39 @@ const {DateTime} = require('luxon');
 const lotsModel = require('../../../../database/models/lotsModel');
 const reservationsModel = require('../../../../database/models/reservationModel');
 const spotsModel = require('../../../../database/models/spotsModel');
-const vehiclesModel = require('../../../../database/models/vehiclesModel');
 const usersModel = require('../../../../database/models/usersModel');
 const notificationRequestsModel = require('../../../../database/models/notificationRequestsModel');
 const defectsModel = require('../../../../database/models/defectsModel');
 const lotOwnershipsModel = require('../../../../database/models/lotOwnershipsModel');
-const violationsModel = require('../../../../database/models/violationsModel');
-const guestsModel = require('../../../../database/models/guestsModel');
 
 const mailer = require('../../../modules/mailer');
 
-const stripePayment = require('../../../../services/stripe/payment');
-const pick = require('../../../../utils/pick');
 
 const crypto = require('crypto');
+
+router.get('/reservations_count', async function(req, res) {
+    try {
+        const reservations_count =
+            await lotsModel.getReservationsCountByLotHash(req.lotInfo.hash);
+        const result = await lotsModel.getLotByHash(req.lotInfo.hash);
+
+        const hourly_reservations_count =
+            reservations_count.map((reservation) => {
+                return reservation.count;
+            });
+        return res.status(200).json({
+            status: 'success',
+            hourly_reservations_count, min_price: result.min_price_per_hour,
+            max_price: result.max_price_per_hour,
+        });
+    } catch (err) {
+        return res.status(500).json({
+            err,
+            status: 'failed',
+            data: 'Unable to make request to server',
+        });
+    }
+});
 
 router.put('/spot', async function(req, res) {
     const lot_data = req.lotInfo;
@@ -282,6 +301,29 @@ router.post('/scan', async function(req, res) {
         });
     }
 });
+
+router.post('/suggested_price', async function(req, res) {
+    const {suggested_price} = req.body;
+    try {
+        const result = await lotsModel.getLotByHash(req.lotInfo.hash);
+        if (result.apply_suggested_pricing) {
+            await lotsModel.updateById(result.id, {
+                suggested_price,
+                price_per_hour: suggested_price,
+            });
+        }
+        await lotsModel.updateById(result.id, {
+            suggested_price,
+        });
+        return res.status(200).json({status: 'success', data: 'Price updated'});
+    } catch (err) {
+        res.status(500).json({
+            err,
+            status: 'failed',
+            data: 'Unable to make request to server',
+        });
+    }
+})
 
 router.post('/:hash', async function(req, res) {
     const hash = req.params.hash;
