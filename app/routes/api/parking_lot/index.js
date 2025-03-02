@@ -18,7 +18,7 @@ const crypto = require('crypto');
 router.get('/reservations_count', async function(req, res) {
     try {
         const reservations_count =
-            await lotsModel.getReservationsCountByLotHash(req.lotInfo.hash);
+            await lotsModel.getReservationsCountByLotId(req.lotInfo.id);
         const result = await lotsModel.getLotByHash(req.lotInfo.hash);
 
         const hourly_reservations_count = [];
