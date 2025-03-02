@@ -265,7 +265,7 @@ async function updateById(id, update_json) {
  * @param lot_id 
  * @returns 
  */
-async function getReservationsCountByLotHash(lot_hash) {
+async function getReservationsCountByLotHash(id) {
     const rows = await db.raw(
         `
         WITH RECURSIVE hours AS (
@@ -284,12 +284,12 @@ async function getReservationsCountByLotHash(lot_hash) {
             AND r_lot_id.lot_id = r.lot_id
         JOIN lots l
             ON l.id = r.lot_id
-        WHERE l.hash = ?
+        WHERE l.id = ?
         AND r.reserved_at >= DATE_SUB(NOW(), INTERVAL 90 DAY)
         GROUP BY r_lot_id.lot_id, h.hour
         ORDER BY r_lot_id.lot_id, h.hour;
         `,
-        [lot_hash],
+        [id],
     );
 
     return rows;
