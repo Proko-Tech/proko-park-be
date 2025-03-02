@@ -292,7 +292,7 @@ async function getReservationsCountByLotId(id) {
         [id],
     );
 
-    return rows;
+    return rows[0];
 }
 
 module.exports = {

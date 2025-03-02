@@ -19,7 +19,6 @@ router.get('/reservations_count', async function(req, res) {
     try {
         const reservations_count =
             await lotsModel.getReservationsCountByLotId(req.lotInfo.id);
-        console.log(reservations_count);
         const result = await lotsModel.getLotByHash(req.lotInfo.hash);
 
         const hourly_reservations_count = [];
