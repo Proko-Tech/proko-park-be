@@ -265,7 +265,7 @@ async function updateById(id, update_json) {
  * @param lot_id 
  * @returns 
  */
-async function getReservationsCountByLotHash(id) {
+async function getReservationsCountByLotId(id) {
     const rows = await db.raw(
         `
         WITH RECURSIVE hours AS (
@@ -311,5 +311,5 @@ module.exports = {
     getBySpotPublicKeyJoinLots,
     updateById,
     getLotByHash,
-    getReservationsCountByLotHash,
+    getReservationsCountByLotId,
 };
