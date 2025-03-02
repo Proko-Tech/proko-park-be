@@ -309,12 +309,12 @@ router.post('/suggested_price', async function(req, res) {
         const result = await lotsModel.getLotByHash(req.lotInfo.hash);
         if (result.apply_suggested_pricing) {
             await lotsModel.updateById(result.id, {
-                suggested_price,
+                suggested_price_per_hour: suggested_price,
                 price_per_hour: suggested_price,
             });
         }
         await lotsModel.updateById(result.id, {
-            suggested_price,
+            suggested_price_per_hour: suggested_price,
         });
         return res.status(200).json({status: 'success', data: 'Price updated'});
     } catch (err) {
