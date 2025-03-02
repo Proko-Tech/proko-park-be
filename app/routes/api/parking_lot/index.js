@@ -21,10 +21,10 @@ router.get('/reservations_count', async function(req, res) {
             await lotsModel.getReservationsCountByLotHash(req.lotInfo.hash);
         const result = await lotsModel.getLotByHash(req.lotInfo.hash);
 
-        const hourly_reservations_count =
-            reservations_count.map((reservation) => {
-                return reservation.count;
-            });
+        const hourly_reservations_count = [];
+        for (let i=0; i<reservations_count.length; i++) {
+            hourly_reservations_count.push(reservations_count[i].count);
+        }
         return res.status(200).json({
             status: 'success',
             hourly_reservations_count, min_price: result.min_price_per_hour,
