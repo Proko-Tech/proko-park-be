@@ -509,13 +509,18 @@ async function insertAndUpdateSpotBySpotId(payload, spot_id, spot_payload) {
  */
 async function batchProcessSpotWOCamReservations(lot_id, spots) {
     const result = {reservation_status: 'failed'};
+
+    if (!lot_id || !Array.isArray(spots) || spots.length === 0) {
+        console.error('Invalid input parameters');
+        return result;
+    }
+
     await db.transaction(async (transaction) => {
         try {
-            const current_time = DateTime.local()
-                .toUTC()
+            const current_time = DateTime.local().toUTC()
                 .toSQL({includeOffset: false});
 
-            const ongoing_reservations = await db('reservations')
+            const ongoing_reservations = await transaction('reservations')
                 .where({
                     lot_id: lot_id,
                     license_plate: 'NO_PLATE-SPACE_WITHOUT_CAM',
@@ -523,18 +528,20 @@ async function batchProcessSpotWOCamReservations(lot_id, spots) {
                     status: 'PARKED',
                 });
 
-            const spot_hash_to_ongoing_reservation_map = new Map();
+            const spot_hash_to_reservation_map = new Map();
             ongoing_reservations.forEach((reservation) => {
-                spot_hash_to_ongoing_reservation_map
+                spot_hash_to_reservation_map
                     .set(reservation.spot_hash, reservation);
             });
 
+            const reservations_to_insert = [];
+            const reservations_to_update = [];
             spots.forEach((spot) => {
                 if (
                     spot.spot_status === 'OCCUPIED' &&
-                    !spot_hash_to_ongoing_reservation_map.has(spot.secret)
+                    !spot_hash_to_reservation_map.has(spot.secret)
                 ) {
-                    ongoing_reservations.push({
+                    reservations_to_insert.push({
                         user_id: -1,
                         lot_id,
                         license_plate: 'NO_PLATE-SPACE_WITHOUT_CAM',
@@ -543,35 +550,44 @@ async function batchProcessSpotWOCamReservations(lot_id, spots) {
                         reserved_at: current_time,
                         arrived_at: current_time,
                         parked_at: current_time,
-                        created_at: current_time,
-                        updated_at: current_time,
                         status: 'PARKED',
                     });
                 } else if (
                     spot.spot_status === 'UNOCCUPIED' &&
-                    spot_hash_to_ongoing_reservation_map.has(spot.secret)
+                    spot_hash_to_reservation_map.has(spot.secret)
                 ) {
-                    const reservation = spot_hash_to_ongoing_reservation_map
-                        .get(spot.secret);
-                    reservation.exited_at = current_time;
-                    reservation.status = 'FULFILLED';
-                    reservation.updated_at = current_time;
+                    reservations_to_update.push({
+                        id: spot_hash_to_reservation_map.get(spot.secret).id,
+                        exited_at: current_time,
+                        status: 'FULFILLED',
+                        updated_at: current_time,
+                    });
                 }
             });
-            
-            await db('reservations')
-                .insert(ongoing_reservations)
-                .onConflict('id')
-                .merge({
-                    exited_at: db.raw('VALUES(exited_at)'),
-                    status: db.raw('VALUES(status)'),
-                    updated_at: db.raw('VALUES(updated_at)'),
-                });
+
+            if (reservations_to_insert.length > 0) {
+                await transaction('reservations')
+                    .insert(reservations_to_insert);
+            }
+
+            if (reservations_to_update.length > 0) {
+                await Promise.all(
+                    reservations_to_update.map((reservation) =>
+                        transaction('reservations')
+                            .where('id', reservation.id)
+                            .update({
+                                exited_at: reservation.exited_at,
+                                status: reservation.status,
+                                updated_at: reservation.updated_at,
+                            }),
+                    ),
+                );
+            }
 
             await transaction.commit();
             result.reservation_status = 'success';
         } catch (err) {
-            console.log(err);
+            console.error(err);
             result.reservation_status = 'failed';
             await transaction.rollback();
         }
