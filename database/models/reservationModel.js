@@ -558,9 +558,7 @@ async function batchProcessSpotWOCamReservations(lot_id, spots) {
                     reservation.updated_at = current_time;
                 }
             });
-
-            console.log(JSON.stringify(ongoing_reservations, null, 2));
-
+            
             await db('reservations')
                 .insert(ongoing_reservations)
                 .onConflict('id')
