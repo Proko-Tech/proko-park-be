@@ -557,7 +557,7 @@ async function batchProcessSpotWOCamReservations(lot_id, spots) {
                     spot_hash_to_reservation_map.has(spot.secret)
                 ) {
                     reservations_to_update.push({
-                        id: spot_hash_to_reservation_map.get(spot.secret).id,
+                        ...spot_hash_to_reservation_map.get(spot.secret),
                         exited_at: current_time,
                         status: 'FULFILLED',
                         updated_at: current_time,
@@ -571,17 +571,10 @@ async function batchProcessSpotWOCamReservations(lot_id, spots) {
             }
 
             if (reservations_to_update.length > 0) {
-                await Promise.all(
-                    reservations_to_update.map((reservation) =>
-                        transaction('reservations')
-                            .where('id', reservation.id)
-                            .update({
-                                exited_at: reservation.exited_at,
-                                status: reservation.status,
-                                updated_at: reservation.updated_at,
-                            }),
-                    ),
-                );
+                await transaction('reservations')
+                    .insert(reservations_to_update)
+                    .onConflict('id')
+                    .merge();
             }
 
             await transaction.commit();
