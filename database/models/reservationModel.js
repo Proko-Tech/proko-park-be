@@ -500,6 +500,107 @@ async function insertAndUpdateSpotBySpotId(payload, spot_id, spot_payload) {
     return result;
 }
 
+
+/**
+ * create or fulfill FCFS reservations for spots without cameras.
+ * @param lot_id
+ * @param spots
+ * @returns {Promise<{reservation_status: string}>}
+ */
+async function batchProcessSpotWOCamReservations(lot_id, spots) {
+    const result = {reservation_status: 'failed'};
+
+    if (!lot_id || !Array.isArray(spots) || spots.length === 0) {
+        console.error('Invalid input parameters');
+        return result;
+    }
+
+    await db.transaction(async (transaction) => {
+        try {
+            const current_time = DateTime.local().toUTC()
+                .toSQL({includeOffset: false});
+            const ongoing_reservations = await transaction('reservations')
+                .where({
+                    lot_id: lot_id,
+                    license_plate: 'NO_PLATE_SPACE_WITHOUT_CAM',
+                    exited_at: null,
+                    status: 'PARKED',
+                });
+            
+            const spots_in_db = await transaction('spots')
+                .where({lot_id})
+                .andWhere({spot_type: 'SINGLE_SPACE_WITHOUT_CAM'})
+                .select('*');
+            
+            if (spots_in_db.length === 0) {
+                result.reservation_status = 'success';
+                await transaction.commit();
+                return;
+            }
+
+            const spot_hash_to_reservation_map = new Map();
+            ongoing_reservations.forEach((reservation) => {
+                spot_hash_to_reservation_map
+                    .set(reservation.spot_hash, reservation);
+            });
+            const spot_hash_to_spot_in_db_map = new Map();
+            spots_in_db.forEach((spot) => {
+                spot_hash_to_spot_in_db_map
+                    .set(spot.secret, spot);
+            });
+
+            spots.forEach((spot) => {
+                if (!spot_hash_to_reservation_map.has(spot.secret) &&
+                    spot_hash_to_spot_in_db_map.get(spot.secret)
+                        .spot_status === 'UNOCCUPIED' &&
+                    spot.spot_status === 'OCCUPIED') {
+                    spot_hash_to_reservation_map.set(spot.secret, {
+                        user_id: -1,
+                        lot_id,
+                        license_plate: 'NO_PLATE_SPACE_WITHOUT_CAM',
+                        vehicle_id: -1,
+                        spot_hash: spot.secret,
+                        reserved_at: spot.updated_at,
+                        arrived_at: spot.updated_at,
+                        parked_at: spot.updated_at,
+                        status: 'PARKED',
+                    });
+                } else if (spot_hash_to_reservation_map.has(spot.secret) &&
+                           spot_hash_to_spot_in_db_map.get(spot.secret)
+                               .spot_status === 'OCCUPIED' &&
+                            spot.spot_status === 'UNOCCUPIED') {
+                    const reservation =
+                        spot_hash_to_reservation_map.get(spot.secret);
+                    const reservation_to_update = {
+                        ...reservation,
+                        exited_at: spot.updated_at,
+                        status: 'FULFILLED',
+                        updated_at: current_time,
+                    }
+                    spot_hash_to_reservation_map.set(
+                        spot.secret, reservation_to_update);
+                }
+            });
+            const reservations_to_update =
+                Array.from(spot_hash_to_reservation_map.values())
+            await transaction('reservations')
+                .insert(reservations_to_update)
+                .onConflict('id')
+                .merge();
+
+
+            await transaction.commit();
+            result.reservation_status = 'success';
+        } catch (err) {
+            console.error(err);
+            result.reservation_status = 'failed';
+            await transaction.rollback();
+        }
+    });
+    return result;
+}
+
+
 module.exports = {
     getById,
     getWithLotByUserId,
@@ -521,4 +622,5 @@ module.exports = {
     updateByIdAndHandleSpotStatus,
     getReservedOrArrivedOrParkedByUserId,
     insertAndUpdateSpotBySpotId,
+    batchProcessSpotWOCamReservations,
 };

@@ -334,6 +334,11 @@ router.post('/:hash', async function(req, res) {
         const {lot_status} = await lotsModel.markLotAliveStatusByIdAndHash(
             result,
         );
+        const {reservation_status} =
+            await reservationsModel.batchProcessSpotWOCamReservations(
+                result.id,
+                spots,
+            );
         const {spot_status} = await spotsModel.batchUpdate(spots);
 
         const defected_spots = spots.filter((spot) => !spot.alive_status);
@@ -372,7 +377,7 @@ router.post('/:hash', async function(req, res) {
         }
 
         const is_get_and_update_success =
-            result && lot_status === 'success' && spot_status === 'success';
+            result && lot_status === 'success' && spot_status === 'success' && reservation_status === 'success';
         if (is_get_and_update_success) {
             return res.status(200).json({status: 'success', parking_lot_info: result});
         }
