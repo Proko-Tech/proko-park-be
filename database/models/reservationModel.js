@@ -531,6 +531,12 @@ async function batchProcessSpotWOCamReservations(lot_id, spots) {
                 .where({lot_id})
                 .andWhere({spot_type: 'SINGLE_SPACE_WITHOUT_CAM'})
                 .select('*');
+            
+            if (spots_in_db.length === 0) {
+                result.reservation_status = 'success';
+                await transaction.commit();
+                return;
+            }
 
             const spot_hash_to_reservation_map = new Map();
             ongoing_reservations.forEach((reservation) => {
