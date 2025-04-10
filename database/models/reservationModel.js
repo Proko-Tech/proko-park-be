@@ -517,6 +517,8 @@ async function batchProcessSpotWOCamReservations(lot_id, spots) {
 
     await db.transaction(async (transaction) => {
         try {
+            const current_time = DateTime.local().toUTC()
+                .toSQL({includeOffset: false});
             const ongoing_reservations = await transaction('reservations')
                 .where({
                     lot_id: lot_id,
@@ -561,14 +563,13 @@ async function batchProcessSpotWOCamReservations(lot_id, spots) {
                            spot_hash_to_spot_in_db_map.get(spot.secret)
                                .spot_status === 'OCCUPIED' &&
                             spot.spot_status === 'UNOCCUPIED') {
-                    console.log('here');
                     const reservation =
                         spot_hash_to_reservation_map.get(spot.secret);
                     const reservation_to_update = {
                         ...reservation,
                         exited_at: spot.updated_at,
                         status: 'FULFILLED',
-                        updated_at: spot.updated_at,
+                        updated_at: current_time,
                     }
                     spot_hash_to_reservation_map.set(
                         spot.secret, reservation_to_update);
