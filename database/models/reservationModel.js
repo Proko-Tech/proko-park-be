@@ -517,65 +517,70 @@ async function batchProcessSpotWOCamReservations(lot_id, spots) {
 
     await db.transaction(async (transaction) => {
         try {
-            const current_time = DateTime.local().toUTC()
-                .toSQL({includeOffset: false});
-
             const ongoing_reservations = await transaction('reservations')
                 .where({
                     lot_id: lot_id,
-                    license_plate: 'NO_PLATE-SPACE_WITHOUT_CAM',
+                    license_plate: 'NO_PLATE_SPACE_WITHOUT_CAM',
                     exited_at: null,
                     status: 'PARKED',
                 });
+            
+            const spots_in_db = await transaction('spots')
+                .where({lot_id})
+                .andWhere({spot_type: 'SINGLE_SPACE_WITHOUT_CAM'})
+                .select('*');
 
             const spot_hash_to_reservation_map = new Map();
             ongoing_reservations.forEach((reservation) => {
                 spot_hash_to_reservation_map
                     .set(reservation.spot_hash, reservation);
             });
-
-            const reservations_to_insert = [];
-            const reservations_to_update = [];
-            spots.forEach((spot) => {
-                if (
-                    spot.spot_status === 'OCCUPIED' &&
-                    !spot_hash_to_reservation_map.has(spot.secret)
-                ) {
-                    reservations_to_insert.push({
-                        user_id: -1,
-                        lot_id,
-                        license_plate: 'NO_PLATE-SPACE_WITHOUT_CAM',
-                        vehicle_id: -1,
-                        spot_hash: spot.secret,
-                        reserved_at: current_time,
-                        arrived_at: current_time,
-                        parked_at: current_time,
-                        status: 'PARKED',
-                    });
-                } else if (
-                    spot.spot_status === 'UNOCCUPIED' &&
-                    spot_hash_to_reservation_map.has(spot.secret)
-                ) {
-                    reservations_to_update.push({
-                        ...spot_hash_to_reservation_map.get(spot.secret),
-                        exited_at: current_time,
-                        status: 'FULFILLED',
-                        updated_at: current_time,
-                    });
-                }
+            const spot_hash_to_spot_in_db_map = new Map();
+            spots_in_db.forEach((spot) => {
+                spot_hash_to_spot_in_db_map
+                    .set(spot.secret, spot);
             });
 
-            if (reservations_to_insert.length > 0) {
-                await transaction('reservations')
-                    .insert(reservations_to_insert);
-            }
+            spots.forEach((spot) => {
+                if (!spot_hash_to_reservation_map.has(spot.secret) &&
+                    spot_hash_to_spot_in_db_map.get(spot.secret)
+                        .spot_status === 'UNOCCUPIED' &&
+                    spot.spot_status === 'OCCUPIED') {
+                    spot_hash_to_reservation_map.set(spot.secret, {
+                        user_id: -1,
+                        lot_id,
+                        license_plate: 'NO_PLATE_SPACE_WITHOUT_CAM',
+                        vehicle_id: -1,
+                        spot_hash: spot.secret,
+                        reserved_at: spot.updated_at,
+                        arrived_at: spot.updated_at,
+                        parked_at: spot.updated_at,
+                        status: 'PARKED',
+                    });
+                } else if (spot_hash_to_reservation_map.has(spot.secret) &&
+                           spot_hash_to_spot_in_db_map.get(spot.secret)
+                               .spot_status === 'OCCUPIED' &&
+                            spot.spot_status === 'UNOCCUPIED') {
+                    console.log('here');
+                    const reservation =
+                        spot_hash_to_reservation_map.get(spot.secret);
+                    const reservation_to_update = {
+                        ...reservation,
+                        exited_at: spot.updated_at,
+                        status: 'FULFILLED',
+                        updated_at: spot.updated_at,
+                    }
+                    spot_hash_to_reservation_map.set(
+                        spot.secret, reservation_to_update);
+                }
+            });
+            const reservations_to_update =
+                Array.from(spot_hash_to_reservation_map.values())
+            await transaction('reservations')
+                .insert(reservations_to_update)
+                .onConflict('id')
+                .merge();
 
-            if (reservations_to_update.length > 0) {
-                await transaction('reservations')
-                    .insert(reservations_to_update)
-                    .onConflict('id')
-                    .merge();
-            }
 
             await transaction.commit();
             result.reservation_status = 'success';
