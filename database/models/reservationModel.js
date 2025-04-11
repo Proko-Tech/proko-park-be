@@ -522,7 +522,7 @@ async function batchProcessSpotWOCamReservations(lot_id, spots) {
             const ongoing_reservations = await transaction('reservations')
                 .where({
                     lot_id: lot_id,
-                    license_plate: 'NO_PLATE_SPACE_WITHOUT_CAM',
+                    license_plate: 'NO_CAMERA',
                     exited_at: null,
                     status: 'PARKED',
                 });
@@ -557,7 +557,7 @@ async function batchProcessSpotWOCamReservations(lot_id, spots) {
                     spot_hash_to_reservation_map.set(spot.secret, {
                         user_id: -1,
                         lot_id,
-                        license_plate: 'NO_PLATE_SPACE_WITHOUT_CAM',
+                        license_plate: 'NO_CAMERA',
                         vehicle_id: -1,
                         spot_hash: spot.secret,
                         reserved_at: spot.updated_at,
