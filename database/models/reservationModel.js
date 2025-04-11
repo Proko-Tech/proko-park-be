@@ -563,6 +563,8 @@ async function batchProcessSpotWOCamReservations(lot_id, spots) {
                         reserved_at: spot.updated_at,
                         arrived_at: spot.updated_at,
                         parked_at: spot.updated_at,
+                        created_at: current_time,
+                        updated_at: current_time,
                         status: 'PARKED',
                     });
                 } else if (spot_hash_to_reservation_map.has(spot.secret) &&
