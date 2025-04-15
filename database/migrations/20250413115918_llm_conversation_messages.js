@@ -4,6 +4,7 @@ exports.up = function(knex) {
         tbl.integer('conversation_id').notNullable();
         tbl.text('role').notNullable();
         tbl.text('content').notNullable();
+        tbl.boolean('is_function_call').defaultTo(false);
         // creates created_at column and updated_at column
         tbl.timestamps(true, true);
     });
